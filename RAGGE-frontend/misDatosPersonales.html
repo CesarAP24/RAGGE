@@ -5,6 +5,70 @@
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/content.css">
     <link rel="stylesheet" href="css/loading.css">
+    <style>
+        .left{
+            padding: 50px 100px;
+        }
+        .top-data{
+            display: flex;
+            flex-direction: row;
+            justify-content: left;
+            align-items: center;
+            margin-bottom: 50px;
+        }
+
+        .top-data .photo{
+            width: 150px;
+            height: 150px;
+            border-radius: 100%;
+            overflow: hidden;
+            margin-right: 60px;
+        }
+
+        .top-data  .photo img{
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .bottom-data{
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bottom-data .cursos{
+            margin-bottom: 20px;
+        }
+
+        .bottom-data .cursos ul{
+            list-style: none;
+            padding: 0;
+        }
+
+
+        .cursos{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+
+        .cursos ul{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+
+        .cursos ul li{
+            margin: 0 10px;
+            display: inline-block;
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+
+
+    </style>
 </head>
 
 
@@ -23,7 +87,29 @@
 
     <section class="main">
         <div class="left">
+            <div class="top-data">
+                <div class="photo">
+                    <img src="https://via.placeholder.com/300" alt="foto">
+                </div>
+                <div class="main-data">
+                    <h2>Mi Nombre</h2>
+                    <p>Estudiante</p>
+                </div>
+            </div>
 
+            <div class="bottom-data">
+                <div class="cursos">
+                    <h3>Cursos:</h3>
+                    <ul>
+                        <li>Curso 1</li>
+                        <li>Curso 2</li>
+                        <li>Curso 3</li>
+                    </ul>
+                </div>
+                <div class="contacto">
+                    <p><strong>Correo de contacto: </strong> correo@gmail.com</p>
+                </div>
+            </div>
         </div>
         
         <div class="right">
