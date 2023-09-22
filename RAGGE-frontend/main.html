@@ -1,0 +1,80 @@
+<html>
+
+<head>
+    <title>Home</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/content.css">
+    <link rel="stylesheet" href="css/loading.css">
+    <style>
+        .tarjeta{
+            max-width: 300px;
+        }
+    </style>
+</head>
+
+
+<body>
+    <div id="pantalla-carga" class="pantalla-carga">
+        <div class="spinner"></div>
+    </div>
+      
+    <div class="top-bar">
+        <div class="logo">
+            <img src="https://via.placeholder.com/150" alt="logo">
+        </div>
+        <div class="title">
+            <h1>Institute logo</h1>
+        </div>
+    </div>
+
+    <section class="main">
+        <div class="left">
+            <!-- contenido principal -->
+            <div class="contenido p-contenido">
+                <h2>Acciones rápidas:</h2>
+                <div class="column">
+                    <div class="row">
+                        <div class="tarjeta">
+                            <div class="tarjeta-contenido">
+                                <h3>Crear un nuevo curso</h3>
+                                <button>Crear curso</button>
+                            </div>
+                        </div>
+                        <div class="tarjeta">
+                            <div class="tarjeta-contenido">
+                                <h3>Crear una nueva tarea</h3>
+                                <button>Crear Tarea</button>
+                            </div>
+                        </div>
+                        <div class="tarjeta">
+                            <div class="tarjeta-contenido">
+                                <h3>Gestiona todas las tareas.</h3>
+                                <button>Calificar tareas</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="empty">
+                        <p>Empty here</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="right">
+            <h3>Menu</h3>
+            <div class="navbar">
+                <!-- contenido: panel, mis cursos, mis alumnos, mis datos personales, mis tareas, mis notas, soporte -->
+                <a class="navbar-item navbar-item-selected" href="main.html">Panel</a>
+                <a class="navbar-item" href="misCursos.html">Mis cursos</a>
+                <a class="navbar-item" href="misAlumnos.html">Mis alumnos</a>
+                <a class="navbar-item" href="misDatosPersonales.html">Mis datos personales</a>
+                <a class="navbar-item" href="misTareas.html">Mis tareas</a>
+                <a class="navbar-item" href="misNotas.html">Mis notas</a>
+                <a class="navbar-item" href="soporte.html">Soporte</a>
+            </div>
+        </div>
+    </section>
+
+    <script src="scripts/loadingLink.js"></script>
+</body>
+</html>

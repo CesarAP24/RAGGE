@@ -1,0 +1,178 @@
+<html>
+
+<head>
+    <title>Mis Alumnos</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/content.css">
+    <link rel="stylesheet" href="css/loading.css">
+    <style>
+        h4{
+            margin-bottom: 20px;
+        }
+        .buscador-container{
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .buscador{
+            flex-grow: 1;
+            padding: 5px;
+            margin: 0 6px;
+        }
+
+        .buscador label{
+            display: block;
+            font-size: 13px;
+            margin-bottom: 7px;
+        }
+
+        .buscador input{
+            width: 100%;
+            padding: 3px;
+            font-size: 13px;
+            border-radius: 4px;
+            border: 1px solid #1e90ff;
+        }
+
+    </style>
+</head>
+
+
+<body>
+    <div id="pantalla-carga" class="pantalla-carga">
+        <div class="spinner"></div>
+    </div>
+    <div class="top-bar">
+        <div class="logo">
+            <img src="https://via.placeholder.com/150" alt="logo">
+        </div>
+        <div class="title">
+            <h1>Institute logo</h1>
+        </div>
+    </div>
+
+    <section class="main">
+        <div class="left">
+            <div class="contenido">
+                <h2>Alumnos</h2>
+                <div class="p-contenido">
+                    <h4>Buscar por:</h4>
+                    <div class="row buscador-container">
+                        <div class="buscador column">
+                            <label for="">Nombre</label>
+                            <input type="text" name="nombre">
+                        </div>
+                        <div class="buscador column">
+                            <label for="">Curso</label>
+                            <input type="text" name="curso">
+                        </div>
+                        <div class="buscador column">
+                            <label for="">Promedio</label>
+                            <input type="text" name="promedio">
+                        </div>
+                    </div>
+                    <br>
+                    <table>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Código</th>
+                            <th>Promedio</th>
+                        </tr>
+                        <tr>
+                            <td>Alumno 1</td>
+                            <td>123456</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td>Alumno 2</td>
+                            <td>123456</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td>Alumno 3</td>
+                            <td>123456</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td>Alumno 2</td>
+                            <td>123456</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td>Alumno 3</td>
+                            <td>123456</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td>Alumno 2</td>
+                            <td>123456</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td>Alumno 3</td>
+                            <td>123456</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td>Alumno 2</td>
+                            <td>123456</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td>Alumno 3</td>
+                            <td>123456</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td>Alumno 2</td>
+                            <td>123456</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td>Alumno 3</td>
+                            <td>123456</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td>Alumno 2</td>
+                            <td>123456</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td>Alumno 3</td>
+                            <td>123456</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td>Alumno 2</td>
+                            <td>123456</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td>Alumno 3</td>
+                            <td>123456</td>
+                            <td>10</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="right">
+            <h3>Menu</h3>
+            <div class="navbar">
+                <!-- contenido: panel, mis cursos, mis alumnos, mis datos personales, mis tareas, mis notas, soporte -->
+                <a class="navbar-item" href="main.html" profesor="true" alumno="true">Panel</a>
+                <a class="navbar-item" href="misCursos.html" profesor="true" alumno="true">Mis cursos</a>
+                <a class="navbar-item navbar-item-selected" href="misAlumnos.html" profesor="true">Mis alumnos</a>
+                <a class="navbar-item" href="misDatosPersonales.html" profesor="true" alumno="true">Mis datos personales</a>
+                <a class="navbar-item" href="misTareas.html" alumno="true">Mis tareas</a>
+                <a class="navbar-item" href="misNotas.html" alumno="true">Mis notas</a>
+                <a class="navbar-item" href="soporte.html" profesor="true">Soporte</a>
+            </div>
+        </div>
+    </section>
+
+    <script src="scripts/loadingLink.js"></script>
+</body>
+</html>

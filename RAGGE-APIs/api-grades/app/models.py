@@ -55,7 +55,7 @@ def __repr__(self):
 
 def serialize(self):
     return {
-        "id": self.id
+        "id": self.id,
         "name_homework": self.name_homework,
         "id_course": self.id_course,
         "id_teacher": self.id_teacher,
@@ -81,23 +81,13 @@ class Delivery(db.Model):
     modified_at = db.Column(db.DateTime(timezone=True), nullable=True)
 
 
-def __init__(self, date, id_homework, id_teacher, id_student, id_student, route_archive, created_at):
-    self.date = date
-    self.id_homework = id_homework
-    self.id_teacher = id_teacher
-    self.id_student = id_student
-    self.id_student = id_student
-    self.route_archive = route_archive
-    self.created_at = datetime.utcnow()
-
-
 def __repr__(self):
     return '<Delivery %r>' % self.date
 
 
 def serialize(self):
     return {
-        "id": self.id
+        "id": self.id,
         "date": self.date,
         "id_homework": self.id_homework,
         "id_teacher": self.id_teacher,
@@ -108,12 +98,12 @@ def serialize(self):
 
 
 class Score(db.Model):
-     __tablename__ = 'scores'
-    date = db.Column(db.DateTime, nullable=False)
-    id_homework = db.Column(db.String(36), ForeignKey('homework.id'), nullable=False)
-    id_teacher = db.Column(db.String(36), ForeignKey('teacher.id'), nullable=False)
+    __tablename__ = 'scores'
+    date = db.Column(db.DateTime, Primary_key=True)
+    id_homework = db.Column(db.String(36), ForeignKey('homework.id'), Primay_key=True)
+    id_teacher = db.Column(db.String(36), ForeignKey('teacher.id'), Primary_key=True)
     id_student = db.Column(db.String(36), ForeignKey('student.id'), nullable=False)
-    id_couser = db.Column(db.String(36), ForeignKey('course.id'), nullable=False)
+    id_couser = db.Column(db.String(36), ForeignKey('course.id'), Primary_key=True)
     value = db.Column(db.Integer(20), nullbale=False, unique=False, default=False)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False)
     modified_at = db.Column(db.DateTime(timezone=True), nullable=True)
@@ -132,7 +122,7 @@ def __repr__(self):
 
 def serialize(self):
     return {
-        "id": self.id
+        "id": self.id,
         "date": self.date,
         "id_teacher": self.id_teacher,
         "id_student": self.id_student,
