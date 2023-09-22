@@ -1,0 +1,70 @@
+<html>
+<head>
+	<style>
+		/* loading animation */
+		@keyframes loading {
+			0% {
+				transform: rotate(0deg);
+			}
+
+			100% {
+				transform: rotate(360deg);
+			}
+		}
+
+		/* loading message */
+		.message {
+			margin-top: 35px;
+			color: #333;
+			font-size: 15px;
+			font-family: system-ui, sans-serif;
+		}
+
+		.error {
+			color: red;
+		}
+
+	</style>
+</head>
+
+<body>
+	<div id="loading" style="display: flex;justify-content: center;align-items: center;height: 100vh;flex-direction: column;">
+		<div style="width: 100px; height: 100px; border: 10px solid #ccc; border-top-color: #333; border-radius: 50%; animation: loading 1s infinite linear;"></div>
+		<p id="message" class="message">Leyendo cookies...</p>
+	</div>
+</body>
+
+<script>
+	//checkear cookies
+	const message = document.getElementById('message');
+	var cookie = document.cookie;
+	//fetch para checkear que las cookies sean validas
+	fetch('http://localhost:3000/cookie', {
+		method: 'GET',
+		headers: {
+			'Content-Type': 'application/json',
+			'Cookie': cookie
+		}
+	}).then(response => {
+		if (response.status == 200) {
+			window.location.href = "http://localhost:3000/home.html";
+		} else {
+			window.location.href = "login.html";
+		}
+	}).catch(error => {
+		console.log(error);
+		message.innerHTML = "Error al leer cookies";
+		message.classList.add('error');
+
+		setTimeout(() => {
+			message.classList.remove('error');
+			message.innerHTML = "Redireccionando...";
+			
+			setTimeout(() => {
+				window.location.href = "login.html";
+			}, 1000);
+		}, 2000);
+	});
+</script>
+
+</html>

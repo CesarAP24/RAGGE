@@ -1,0 +1,86 @@
+<html>
+
+<head>
+    <title>Log in</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/login-register.css">
+    <style>
+    .right {
+        float: right;
+        width: 100%;
+        height: 100%;
+        background-color:rgba(255,255,255,0.85);
+    }
+
+    .login-container {
+        width: 100%;
+        height: 100vh;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #reorder-2{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .margin-10{
+        margin: 0 10px;
+    }
+
+    #btn{
+        width: 95%;
+    }
+
+    </style>
+</head>
+
+<body>
+    <div class="right login-container">
+        <div class="title">
+            <div class="logo">
+                <img src="https://via.placeholder.com/150" alt="logo">
+            </div>
+            <h3>Institute logo</h3>
+        </div>
+        <div class="formulario">
+            <h2>Registrate:</h2>
+            <form>
+                <div id="reorder-2">
+                    <div class="margin-10">
+                        <label for="dni">DNI*:</label>
+                        <input type="text" id="dni" name="dni" placeholder="ingresa tu dni" required>
+                    </div>
+                    <div class="margin-10">
+                        <label for="Nombres">Nombres*:</label>
+                        <input type="text" id="Nombres" name="Nombres" placeholder="ingresa tu nombre" required> 
+                    </div>
+                </div>
+                
+
+                <div id="reorder-2">
+                    <div class="margin-10">
+                        <label for="code" >Código de Profesor*:</label>
+                        <input type="text" id="code" name="code" placeholder="ingresa tu código" required>   
+                    </div>
+                    <div class="margin-10">
+                        <label for="correo">Correo de contacto*:</label>
+                        <input type="email" id="correo" name="correo" placeholder="ingresa tu correo" required>
+                    </div>
+                </div>
+
+
+                
+                <button type="submit" class="btn" id="btn">Registrarse</button>
+
+                <p>¿Ya tienes cuenta? <a href="login.html">Inicia sesión</a> </p>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

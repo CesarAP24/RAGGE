@@ -53,8 +53,69 @@ def create_app(test_config=None):
         return response
 
     # ROUTES API -----------------------------------------------------------
-    
-    
+    @app.route('/cursos', methods=['GET'])
+    def get_cursos():
+        returned_code = 200
+        error_message = ''
+        cursos_list = []
+
+        try:
+            search_query = request.args.get('search', None)
+            if search_query:
+                cursos = Course.query.filter(
+                    Course.name.like('%{}%'.format(search_query))).all()
+                cursos_list = [curso.serialize() for curso in cursos]
+
+            else:
+                cursos = Course.query.all()
+                cursos_list = [curso.serialize() for curso in cursos]
+
+            if not cursos_list:
+                returned_code = 404
+                error_message = 'No course found'
+
+        except Exception as e:
+            returned_code = 500
+            error_message = 'Error retrieving courses'
+
+        if returned_code != 200:
+            return jsonify({'success': False, 'message': error_message}), returned_code
+
+        return jsonify({'success': True, 'cursos': cursos_list}), returned_code
+
+    @app.route('/cursos', methods=['POST'])
+    def add_course():
+        try:
+            data = requests.get_json()
+
+            if 'course_name' not in data or 'id_course' not in data:
+                return jsonify({'success': False, 'message': 'Los campos course_name y course_code son requeridos'}), 400
+
+            new_course = Course(course_name=data['course_name']=data['code_course'])
+
+            db.session.add(new_course)
+            db.session.commit()
+
+            return jsonify({'success': True, 'message': 'Curso agregado correctamente'}), 201
+
+        except Exception as e:
+            return jsonify({'success': False, 'message': 'Error al agregar el curso'}), 500
+
+    @app.route('/cursos/<string:curso_id>', methods=['DELETE'])
+    def delete_course(curso_id):
+        try:
+            corso = Course.query.get(curso_id)
+
+            if not curso:
+                return jsonify({'success': False, 'message': 'Course not found'}), 404
+
+            db.session.delete(curso)
+            db.session.commit()
+
+            return jsonify({'success': True, 'message': 'Curso deleted successfully'}), 200
+
+        except Exception as e:
+            return jsonify({'success': False, 'message': 'Error deleting curso'}), 500
     # HANDLE ERROR ---------------------------------------------------------
 
     @app.errorhandler(404)
