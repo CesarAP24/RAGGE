@@ -1,0 +1,211 @@
+body{
+    background-color: rgba(244,242,238,1);
+}
+
+a{
+    text-decoration: none;
+    color: #000;
+}
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    background-color: #ffffff;
+    color: #000000;
+    border-bottom: 1px solid #ccc;
+}
+.top-bar .logo img{
+    width: 50px;
+    height: 50px;
+}
+.top-bar .title{
+    margin-left: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.top-bar .title h1{
+    font-weight: 100;
+}
+
+
+.main {
+    padding: 30px;
+    width: 100%;
+    display: flex;
+    height: fit-content;
+    align-items: stretch;
+    flex-direction: row;
+
+}
+
+.left{
+    padding: 10px;
+    width: 78%;
+    background-color: rgba(255, 255, 255, 0.85);
+    border-radius: 10px;
+    margin: 20px 0 20px 20px;
+}
+.right{
+    padding: 10px;
+    padding-bottom: 0;
+    width: 18%;
+    margin: 20px;
+    background-color: rgba(255, 255, 255, 0.85);
+    border-radius: 10px;
+}
+
+.navbar{
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    text-align: left;
+}
+
+.right h3{
+    font-weight: 100;
+    margin: 0;
+    padding: 20px;
+}
+
+.navbar .navbar-item:first-child{
+    padding-top: 20px;
+    margin-top: 5px;
+}
+
+.navbar .navbar-item:last-child{
+    padding-bottom: 20px;
+}
+
+.navbar .navbar-item{
+    width: 100%;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    border-bottom: 1px solid #ccc;
+    padding-top: 35px;
+    transition: all 0.4s ease-in-out;
+}
+
+.navbar .navbar-item:hover{
+    transition: all 0.4s ease-in-out;
+    text-decoration: underline;
+    background-color: rgba(0, 0, 0, 0.01);
+}
+
+.navbar .navbar-item-selected{
+    background-color: rgba(0, 0, 0, 0.01);
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.navbar .navbar-item-selected:hover{
+    background-color: rgba(0, 0, 0, 0.01);
+}
+
+.navbar-item:hover{
+    background-color: rgba(255, 255, 255, 0.95);
+}
+
+.contenido{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    padding: 20px;
+}
+
+.contenido *{
+    font-weight: 100;
+}
+
+.contenido h2{
+    margin-top: 10px;
+    margin-bottom: 20px;
+    width: 100%;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ccc;
+}
+
+.contenido .tarjeta{
+    width: 100%;
+    margin: 10px;
+    background-color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 1px solid #1e8fff28;
+}
+
+.contenido .tarjeta:hover{
+    background-color: #1e8fff0d;
+}
+
+.contenido .tarjeta .tarjeta-contenido{
+    padding: 20px;
+}
+
+.contenido .tarjeta .tarjeta-contenido button{
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    transition: all 0.2s ease-in-out;
+    background-color: #fff;
+    color: #000;
+    border: 1px solid #1e90ff;
+}
+
+.contenido .tarjeta .tarjeta-contenido button:hover{
+    background-color: #1e90ff;
+    color: #fff;
+    cursor: pointer;
+}
+
+/* active que inicie con una transición desde el centro del boton y cambie de color desde el centro*/
+.contenido .tarjeta .tarjeta-contenido button:active{
+    transition: all 0.2s ease-in-out;
+    background-color: #fff;
+    color: #000;
+    border: 1px solid #000;
+}
+
+.contenido .tarjeta .tarjeta-contenido h3{
+    margin: 5px 0 20px 0;
+    padding: 0;
+}
+
+.contenido .tarjeta .tarjeta-contenido p{
+    margin: 0;
+}
+
+.row{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.empty{
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.empty p{
+    font-weight: 100;
+    color: rgba(0, 0, 0, 0.1);
+}
+
+
+.column{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-weap: wrap;
+}
+
+.center-vertical{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
