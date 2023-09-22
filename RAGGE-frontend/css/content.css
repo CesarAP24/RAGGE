@@ -6,16 +6,21 @@ a{
     text-decoration: none;
     color: #000;
 }
+ 
+::-webkit-scrollbar {
+    width: 0px;
+}
+
 
 .top-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 20px 30px;
-    background-color: #ffffff;
+    background-color: #f9f9f9;
+    border-radius: 0 0 10px 10px;
     color: #000000;
-    border-bottom: 1px solid #ccc;
-}
+    box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);}
 .top-bar .logo img{
     width: 50px;
     height: 50px;
@@ -208,4 +213,30 @@ a{
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+table{
+    width: 100%;
+    padding: 10px;
+}
+
+table tr{
+    border-bottom: 1px solid #ccc;
+}
+
+table tr:first-child{
+    font-size: 15px;
+}
+
+table tr:last-child{
+    border-bottom: none;
+}
+
+table tr td{
+    font-size: 14px;
+    padding: 15px;
+}
+
+table tr:nth-child(even){
+    background-color: rgba(0, 0, 0, 0.03);
 }
