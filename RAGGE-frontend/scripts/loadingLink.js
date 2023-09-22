@@ -6,7 +6,7 @@ function mostrarPantallaCarga(destino) {
     setTimeout(function() {
         // Redirigir al destino después de 2 segundos
         window.location.href = destino;
-    }, 10); // 2000 milisegundos (2 segundos)
+    }, 0); // 2000 milisegundos (2 segundos)
 }
 
 

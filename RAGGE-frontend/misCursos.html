@@ -5,6 +5,8 @@
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/content.css">
     <link rel="stylesheet" href="css/loading.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <style>
         .tarjeta-contenido.row.center-vertical {
             justify-content: space-between;
@@ -19,6 +21,14 @@
         h4{
             margin: 10px;
         }
+
+        .tarjeta-contenido button{
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        } 
     </style>
 </head>
 
@@ -41,6 +51,16 @@
             <div class="contenido">
                 <h2>Cursos:</h2>
                 <div class="column">
+                    <div class="tarjeta">
+                        <div class="tarjeta-contenido row center-vertical">
+                            <h4>Nombre del Curso</h4> <button class="btn">></button>
+                        </div>
+                    </div>
+                    <div class="tarjeta">
+                        <div class="tarjeta-contenido row center-vertical">
+                            <h4>Nombre del Curso</h4> <button class="btn">></button>
+                        </div>
+                    </div>
                     <div class="tarjeta">
                         <div class="tarjeta-contenido row center-vertical">
                             <h4>Nombre del Curso</h4> <button class="btn">></button>
