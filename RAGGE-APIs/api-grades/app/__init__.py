@@ -1,39 +1,28 @@
-# Libraries
-
-from .models import *
-from flask_cors import CORS
-from .utilities import *
 
 from flask import (
+    session,
     Flask,
-    render_template,
     jsonify,
     request,
-    redirect,
-    abort,
-    session,
+    abort
 )
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import ForeignKey
-
-
 import sys
 import uuid
 import json
 import os
 from datetime import datetime
 from datetime import timedelta
+from .models import db, setup_db, User, Teacher, Student, Homework, Score
+from flask_cors import CORS
 
 
-# App
-
-def create_app(test_config=None):
+def create_app(config=None):
     app = Flask(__name__)
-    app.secret_key = 'pneumonoultramicroscopicsilicovolcanoconiosis'
-
     with app.app_context():
-        setup_db(app, test_config['database_path'] if test_config else None)
-        CORS(app, origins='*', supports_credentials=True)
+        setup_db(app, config['database_path'] if config else None)
+        CORS(app, origins='http://localhost:8080')
 
     @app.after_request
     def after_request(response):
@@ -42,248 +31,404 @@ def create_app(test_config=None):
                              'GET,PATCH,POST,DELETE,OPTIONS')
         return response
 
-    # # ROUTES API -----------------------------------------------------------
-    # @app.route('/homework', methods=['GET'])
-    # def get_homework():
-    #     returned_code = 200
-    #     error_message = ''
-    #     homework_list = []
-
-    #     try:
-    #         search_query = request.args.get('search', None)
-    #         if search_query:
-    #             homeworks = Homework.query.filter(
-    #                 (Homework.name_homework.like('%{}%'.format(search_query))) |
-    #                 (Homework.indications('%{}%'.format(search)))
-    #             ).all()
-
-    #             homework_list = [homework.serialize()
-    #                              for homework in homeworks]
-    #         else:
-    #             homeworks = Homework.query.all()
-    #             homework_list = [homework.serialize()
-    #                              for homework in homeworks]
-
-    #         if not homework_list:
-    #             returned_code = 404
-    #             error_message = 'Not homework found'
-
-    #     except Exception as e:
-    #         returned_code = 500
-    #         error_message = 'Error retrieving homework'
-
-    #     if returned_code != 200:
-    #         return jsonify({'success': False, 'message': error_message}), returned_code
+    # ROUTES API -----------------------------------------------------------
+    @app.route('/teachers', methods=['POST'])
+    def create_teacher():
+        returned_code = 201
+        list_errors = []
+
+        try:
+            body = request.json
+
+            if 'firstname' not in body:
+                list_errors.append('firstname')
+            else:
+                firstname = body['firstname']
+
+            if 'lastname' not in body:
+                list_errors.append('lastname')
+            else:
+                lastname = body['lastname']
+
+            if 'email' not in body:
+                list_errors.append('email')
+            else:
+                email = body['email']
+
+            if 'contrasena' not in body:
+                list_errors.append('contrasena')
+            else:
+                contrasena = body['contrasena']
+
+            if len(list_errors) > 0:
+                returned_code = 400
+            else:
+                new_teacher = Teacher(
+                    id=str(uuid.uuid4()),
+                    firstname=firstname,
+                    lastname=lastname,
+                    dni=body['dni'],
+                    phone_number=body['phone_number'],
+                    email=email,
+                    contrasena=contrasena
+                )
+
+                db.session.add(new_teacher)
+                db.session.commit()
+                client_id = new_teacher.id
+
+        except Exception as e:
+            print(sys.exc_info())
+            db.session.rollback()
+            returned_code = 500
+
+        finally:
+            db.session.close()
+
+        if returned_code == 400:
+            return jsonify({'success': False, 'message': 'Error registering teacher', 'errors': list_errors}), returned_code
+        elif returned_code != 201:
+            abort(returned_code)
+        else:
+            return jsonify({'id': client_id, 'success': True, 'message': 'Teacher registered successfully!'}), returned_code
+
+    @app.route('/teachers/<string>:teacher_id', methods=['PATCH'])
+    def update_teacher(teacher_id):
+        try:
+            teacher = Teacher.query.get(teacher_id)
+
+            if teacher is None:
+                return jsonify({'success': False, 'message': 'Teacher not found'}), 404
+
+            data = request.json
+
+            if 'phone_number' in data:
+                teacher.phone_number = data['phone_number']
+            if 'firstname' in data:
+                teacher.firstname = data['firstname']
+            if 'lastname' in data:
+                teacher.lastname = data['lastname']
+            if 'dni' in data:
+                teacher.dni = data['dni']
+            if 'email' in data:
+                teacher.email = data['email']
+            if 'contrasena' in data:
+                teacher.contrasena = data['contrasena']
+
+            db.session.commit()
+
+            return jsonify({'success': True, 'message': 'Profesor actualizado exitosamente'}), 200
+
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'message': 'Error al actualizar el profesor'}), 500
+
+        finally:
+            db.session.close()
+
+    @app.route('/teacher', methods=['DELETE'])
+    def delete_teacher(teacher_id):
+        try:
+            teacher = Teacher.query.get(teacher_id)
+
+            if teacher is None:
+                return jsonify({'success': False, 'message': 'Profesor no encontrado'}), 404
+
+            db.session.delete(teacher)
+            db.session.commit()
+
+            return jsonify({'success': True, 'message': 'Profesor eliminado exitosamente'}), 204
+
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'message': 'Error al eliminar el profesor'}), 500
+
+        finally:
+            db.session.close()
+
+    @app.route('/teachers/<string:teacher_id>', methods=['GET'])
+    def get_teacher(teacher_id):
+        try:
+            teacher = Teacher.query.get(teacher_id)
+
+            if teacher is None:
+                return jsonify({'success': False, 'message': 'Profesor no encontrado'}), 404
+
+            teacher_data = {
+                'id': teacher.id,
+                'firstname': teacher.firstname,
+                'lastname': teacher.lastname,
+                'dni': teacher.dni,
+                'email': teacher.email,
+                'phone_number': teacher.phone_number
+            }
+
+            return jsonify({'success': True, 'teacher': teacher_data}), 200
+
+        except Exception as e:
+            return jsonify({'success': False, 'message': 'Error al obtener información del profesor'}), 500
+
+    @app.route('/students', methods=['POST'])
+    def create_student():
+        returned_code = 201
+        list_errors = []
+
+        try:
+            body = request.json
+
+            required_fields = ['firstname', 'lastname', 'email', 'contrasena']
+
+            for field in required_fields:
+                if field not in body:
+                    list_errors.append(field)
+
+            if len(list_errors) > 0:
+                returned_code = 400
+            else:
+                new_student(
+                    id=str(uuid.uuid4()),
+                    firstname=body['firstname'],
+                    lastname=body['lastname'],
+                    email=body['email'],
+                    contrasena=body['contrasena']
+                )
+
+                db.session.add(new_student)
+                db.session.commit()
+                student_id = new_student.id
+
+        except Exception as e:
+            db.session.rollback()
+            returned_code = 500
+
+        finally:
+            db.session.close()
 
-    #     return jsonify({'success': True, 'homework': homework_list}), returned_code
+        if returned_code == 400:
+            return jsonify({'success': False, 'message': 'Error registering student', 'errirs': list_errros}), returned_code
+        elif returned_code != 201:
+            abort(returned_code)
+        else:
+            return jsonify({'id': student_id, 'success': True, 'message': 'Student registered successfully'}), returned_code
+
+    @app.route('/students/<string:student_id>', methods=['DELETE'])
+    def delete_student(student_id):
+        try:
+            students = Student.query.get(student_id)
 
-    # @app.route('/homework', methods=['POST'])
-    # def create_homework():
-    #     try:
-    #         data = requests.get_json()
-    #         if not data:
-    #             return jsonify({'success': False, 'message': 'Invalid JSON data'}), 400
-    #             name_homework = data.get('name_homwork')
-    #             deadline = data.get('deadline')
-    #             indications = data.get('indications')
+            if student is None:
+                return jsonify({'success': False, 'message': 'Estudiante no encontrado'}), 404
 
-    #         if not all([name_homework, deadline, indications]):
-    #             return jsonify({'success': False, 'message': 'Missing required fields'}), 400
+            db.session.delete(student)
+            b.session.commit()
 
-    #         new_homework = Homework(
-    #             name_homework=name_homework,
-    #             deadline=deadline,
-    #             indications=indications
-    #         )
+            return jsonify({'success': True, 'message': 'Estudiante eliminado exitosamente'}), 204
 
-    #         db.session.add(new_homework)
-    #         db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'message': 'Error al eliminar el estudiante'}), 500
 
-    #         return jsonify({'success': True, 'message': 'Homework created successfully'}), 201
+        finally:
+            db.session.close()
 
-    #     except Exception as e:
-    #         return jsonify({'success': False, 'message': 'Error creating homework'}), 500
+    @app.route('/courses', methods=['POST'])
+    def create_course():
+        returned_code = 201
+        try:
+            body = request.json
 
-    # @app.route('/homework/string:homework_id', methods=['DELETE'])
-    # def delete_homework(homework_id):
-    #     try:
-    #         homework = Homework.query.get(homework_id)
+            required_fields = ['course_name']
+            for field in required_fields:
+                if field not in body:
+                    list_errors.append(field)
 
-    #         if not homework:
-    #             return jsonify({'success': False, 'message': 'Homework not found'}), 404
+            if len(list_errors) > 0:
+                returned_code = 400
+            else:
+                new_course = Course(
+                    course_name=body['course_name'],
+                )
 
-    #         db.session.delete(homework)
-    #         db.session.commit()
+                db.session.add(new_course)
+                db.session.commit()
+                course_id = new_course.id_course
 
-    #         return jsonify({'success': True, 'message': 'Homework deleted successfully'}), 200
+        except Exception as e:
+            db.session.rollback()
+            returned_code = 500
+        finally:
+            db.session.close()
 
-    #     except Exception as e:
-    #         return jsonify({'success': False, 'message': 'Error deleting homework'}), 500
+        if returned_code == 400:
+            return jsonify({'success': False, 'message': 'Error creating course', 'errors': list_errors}), returned_code
+        elif returned_code != 201:
+            abort(returned_code)
+        else:
+            return jsonify({'id_course': course_id, 'success': True, 'message': 'Course created successfully!'}), returned_code
 
-    # @app.route('/delibery/string:delibery_id', methods=['GET'])
-    # def get_delibery(delibery_id):
-    #     try:
-    #         delibery = Delibery.query.get(delibery_id)
+    @app.route('/courses/<int:course_id>', methods=['DELETE'])
+    def delete_course(course_id):
+        try:
+            course = Course.query.get(course_id)
 
-    #         if not delivery:
-    #             return jsonify({'success': False, 'message': 'Delivery not found'}), 404
+            if course is None:
+                return jsonify({'success': False, 'message': 'Curso no encontrado'}), 404
 
-    #         delibery_info = {
-    #             'id' = delibery.id,
-    #             'date' = delibery.date.strftime('%Y-%m-%d %H:%M:%S'),
-    #             'id_homework': delibery.id_homework,
-    #             'id_student': delibery.id_student,
-    #             'route_archive': delibery.route_archive,
-    #         }
+            db.session.delete(course)
+            db.session.commit()
 
-    #         return jsonify({'success': True, 'delibery': delibery_info}), 200
+            return jsonify({'success': True, 'message': 'Curso eliminado exitosamente'}), 204
 
-    #     except Exception as e:
-    #         return jsonify({'success': False, 'message': 'Error retrieving delivery'}), 500
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'message': 'Error al eliminar el curso'}), 500
 
-    # @app.route('/delivery/<string:delivery_id>', methods=['PATCH'])
-    # def update_delivery(delivery_id):
-    #     try:
-    #         delivery = Delivery.query.get(delivery_id)
+        finally:
+            db.session.close()
 
-    #         if not delivery:
-    #             return jsonify({'success': False, 'message': 'Delivery not found'}), 404
+    @app.route('/courses/<string:teacher_id>', methods=['GET'])
+    def get_teacher_courses(teacher_id):
+        try:
+            teacher = Teacher.query.get(teacher_id)
 
-    #         data = request.get_json()
+            if teacher is None:
+                return jsonify({'success': False, 'message': 'Profesor no encontrado'}), 404
 
-    #         if not data:
-    #             return jsonify({'success': False, 'message': 'Invalid JSON data'}), 400
+            courses = Course.query.filter_by(id_teacher=teacher_id).all()
 
-    #         if 'route_archive' in data:
-    #             delivery.route_archive = data['route_archive']
+            course_data = [course.serialize() for course in courses]
 
-    #         delivery.modified_at = datetime.utcnow()
-    #         db.session.commit()
+            return jsonify({'success': True, 'courses': course_data}), 200
 
-    #         return jsonify({'success': True, 'message': 'Delivery updated successfully'}), 200
+        except Exception as e:
+            return jsonify({'success': False, 'message': 'Error al obtener cursos del profesor'}), 500
 
-    #     except Exception as e:
-    #         return jsonify({'success': False, 'message': 'Error updating delivery'}), 500
+    @app.route('/homeworks/<string:teacher_id>', methods=['GET'])
+    def get_teacher_homeworks(teacher_id):
+        try:
+            teacher = Teacher.query.get(teacher_id)
 
-    # @app.route('/delivery/<string:delivery_id>', methods=['DELETE'])
-    # def delete_delivery(delivery_id):
-    #     try:
-    #         delivery = Delivery.query.get(delivery_id)
+            if teacher is None:
+                return jsonify({'success': False, 'message': 'Profesor no encontrado'}), 404
 
-    #         if not delivery:
-    #             return jsonify({'success': False, 'message': 'Delivery not found'}), 404
+            homeworks = Homework.query.filter_by(id_teacher=teacher_id).all()
 
-    #         db.session.delete(delivery)
-    #         db.session.commit()
+            homework_data = [homework.serialize() for homework in homeworks]
 
-    #         return jsonify({'success': True, 'message': 'Delivery deleted successfully'}), 200
+            return jsonify({'success': True, 'homeworks': homework_data}), 200
 
-    #     except Exception as e:
+        except Exception as e:
+            return jsonify({'success': False, 'message': 'Error al obtener tareas del profesor'}), 500
 
-    #         return jsonify({'success': False, 'message': 'Error deleting delivery'}), 500
+    @app.route('/courses/<string:course_id>/homeworks/<string:homework_id>', methods=['GET'])
+    def get_specific_homework(course_id, homework_id):
+        try:
+            course = Course.query.get(course_id)
 
-    # @app.route('/score/<string:score_id>', methods=['GET'])
-    # def get_score(score_id):
-    #     try:
-    #         score = Score.query.get(score_id)
+            if course is None:
+                return jsonify({'success': False, 'message': 'Curso no encontrado'}), 404
 
-    #         if not score:
-    #             return jsonify({'success': False, 'message': 'Score not found'}), 404
+            homework = Homework.query.get(homework_id)
 
-    #         score_info = score.serialize()
+            if homework is None or homework.id_course != course_id:
+                return jsonify({'success': False, 'message': 'Tarea (homework) no encontrada en este curso'}), 404
 
-    #         return jsonify({'success': True, 'score': score_info}), 200
+            homework_data = homework.serialize()
 
-    #     except Exception as e:
-    #         return jsonify({'success': False, 'message': 'Error retrieving score'}), 500
+            return jsonify({'success': True, 'homework': homework_data}), 200
 
-    # @app.route('/score', methods=['POST'])
-    # def create_score():
-    #     try:
-    #         data = request.get_json()
+        except Exception as e:
+            return jsonify({'success': False, 'message': 'Error al obtener la tarea (homework)'}), 500
 
-    #         if not data:
-    #             return jsonify({'success': False, 'message': 'Invalid JSON data'}), 400
+    @app.route('/courses/<string:course_id>/homeworks', methods=['GET'])
+    def get_course_homeworks(course_id):
+        try:
+            course = Course.query.get(course_id)
 
-    #         date = data.get('date')
-    #         id_homework = data.get('id_homework')
-    #         id_student = data.get('id_student')
-    #         value = data.get('value')
+            if course is None:
+                return jsonify({'success': False, 'message': 'Curso no encontrado'}), 404
 
-    #         if not all([date, id_homework, id_teacher, id_student, id_course, value]):
-    #             return jsonify({'success': False, 'message': 'Missing required fields'}), 400
+            homeworks = Homework.query.filter_by(id_course=course_id).all()
 
-    #         new_score = Score(
-    #             date=date,
-    #             id_homework=id_homework,
-    #             id_student=id_student,
-    #             value=value
-    #         )
+            homework_data = [homework.serialize() for homework in homeworks]
 
-    #         db.session.add(new_score)
-    #         db.session.commit()
+            return jsonify({'success': True, 'homeworks': homework_data}), 200
 
-    #         return jsonify({'success': True, 'message': 'Score created successfully'}), 201
+        except Exception as e:
+            return jsonify({'success': False, 'message': 'Error al obtener tareas del curso'}), 500
 
-    #     except Exception as e:
-    #         return jsonify({'success': False, 'message': 'Error creating score'}), 500
+    @app.route('/courses/<string:course_id>/homeworks/<string:homework_id>/students/<string:student_id>/scores', methods=['POST'])
+    def create_score(course_id, homework_id, student_id):
+        try:
+            if not current_user.is_authenticated:
+                return jsonify({'success': False, 'message': 'Usuario no autenticado'}), 401
 
-    # @app.route('/score/<string:score_id>', methods=['PATCH'])
-    # def update_score(score_id):
-    #     try:
-    #         score = Score.query.get(score_id)
+            course = Course.query.get(course_id)
 
-    #         if not score:
-    #             return jsonify({'success': False, 'message': 'Score not found'}), 404
+            if course is None:
+                return jsonify({'success': False, 'message': 'Curso no encontrado'}), 404
 
-    #         data = request.get_json()
+            homework = Homework.query.get(homework_id)
 
-    #         if not data:
-    #             return jsonify({'success': False, 'message': 'Invalid JSON data'}), 400
+            if homework is None:
+                return jsonify({'success': False, 'message': 'Tarea (homework) no encontrada'}), 404
 
-    #         if 'value' in data:
-    #             score.value = data['value']
+            student = Student.query.get(student_id)
 
-    #         score.modified_at = datetime.utcnow()
-    #         db.session.commit()
+            if student is None:
+                return jsonify({'success': False, 'message': 'Estudiante no encontrado'}), 404
 
-    #         return jsonify({'success': True, 'message': 'Score updated successfully'}), 200
+            teacher = Teacher.query.filter_by(
+                course_id=course_id, user_id=current_user.id).first()
 
-    #     except Exception as e:
-    #         return jsonify({'success': False, 'message': 'Error updating score'}), 500
+            if teacher is None:
+                return jsonify({'success': False, 'message': 'No tienes permiso para calificar a este estudiante en este curso'}), 403
 
-    # # HANDLE ERROR ---------------------------------------------------------
+            new_score = Score(
+                date=datetime.utcnow(),
+                value=0,
+            )
 
-    # @app.errorhandler(404)
-    # def not_found(error):
-    #     return jsonify({"success": False, "message": 'Resource not found'}), 404
+            db.session.add(new_score)
+            db.session.commit()
 
-    # @app.errorhandler(401)
-    # def unauthorized(error):
-    #     return jsonify({"success": False, "message": 'Unauthorized'}), 401
+            return jsonify({'success': True, 'message': 'Nota creada exitosamente'}), 201
 
-    # @app.errorhandler(400)
-    # def bad_request(error):
-    #     return jsonify({"success": False, "message": 'Bad request'}), 400
+        except Exception as e:
+            return jsonify({'success': False, 'message': 'Error al crear la nota'}), 500
 
-    # @app.errorhandler(405)
-    # def not_allowed(error):
-    #     return jsonify({"success": False, "message": 'Method not allowed'}), 405
+    #  HANDLE ERROR ---------------------------------------------------------
 
-    # @app.errorhandler(403)
-    # def forbidden(error):
-    #     return jsonify({"success": False, "message": 'Forbidden'}), 403
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({"success": False, "message": 'Resource not found'}), 404
 
-    # @app.errorhandler(409)
-    # def conflict(error):
-    #     return jsonify({"success": False, "message": 'Conflict'}), 409
+    @app.errorhandler(401)
+    def unauthorized(error):
+        return jsonify({"success": False, "message": 'Unauthorized'}), 401
 
-    # @app.errorhandler(500)
-    # def server_error(error):
-    #     return jsonify({"success": False, "message": 'Server error'}), 500
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({"success": False, "message": 'Bad request'}), 400
 
-    # @app.errorhandler(501)
-    # def not_implemented(error):
-    #     return jsonify({"success": False, "message": 'Not implemented'}), 501
+    @app.errorhandler(405)
+    def not_allowed(error):
+        return jsonify({"success": False, "message": 'Method not allowed'}), 405
+
+    @app.errorhandler(403)
+    def forbidden(error):
+        return jsonify({"success": False, "message": 'Forbidden'}), 403
+
+    @app.errorhandler(409)
+    def conflict(error):
+        return jsonify({"success": False, "message": 'Conflict'}), 409
+
+    @app.errorhandler(500)
+    def server_error(error):
+        return jsonify({"success": False, "message": 'Server error'}), 500
+
+    @app.errorhandler(501)
+    def not_implemented(error):
+        return jsonify({"success": False, "message": 'Not implemented'}), 501
 
     return app

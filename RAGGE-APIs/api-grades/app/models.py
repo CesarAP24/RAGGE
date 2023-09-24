@@ -1,13 +1,11 @@
-from flask_sqlalchemy import SQLAlchemy
-from config.local import config
-import uuid
-from datetime import datetime
-from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import relationship
-import sys
 import random
-
+from sqlalchemy.orm import relationship
+from sqlalchemy import ForeignKey
+from datetime import datetime
+import uuid
+from config.app import config
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 db = SQLAlchemy()
 
@@ -27,14 +25,16 @@ def generate_random_code():
 
 class User(db.Model):
     __tablename__ = 'users'
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-
-    firstname = db.Column(db.String(30), nullable=False, unique=False, default=False)
-    lastname = db.Column(db.String(60), nullable=False, unique=True, default=False)
+    id = db.Column(db.Integer, primary_key=True)
+    firstname = db.Column(db.String(30), nullable=False,
+                          unique=False, default=False)
+    lastname = db.Column(db.String(60), nullable=False,
+                         unique=True, default=False)
     dni = db.Column(db.String(20), nullable=False, unique=True, default=False)
-    email = db.Column(db.String(99), nullable=False, unique=True, default=False)
-    contrasena = db.Column(db.String(255), nullable=False, unique=True, default=False)
-
+    email = db.Column(db.String(99), nullable=False,
+                      unique=True, default=False)
+    contrasena = db.Column(db.String(255), nullable=False,
+                           unique=True, default=False)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False)
     modified_at = db.Column(db.DateTime(timezone=True), nullable=True)
 
@@ -55,7 +55,8 @@ class User(db.Model):
 class Teacher(db.Model):
     __tablename__ = 'teachers'
     id = db.Column(db.String(36), ForeignKey('users.id'), primary_key=True)
-    phone_number = db.Column(db.String(50), nullable=False, unique=True, default=False)
+    phone_number = db.Column(
+        db.String(50), nullable=False, unique=True, default=False)
 
     def __repr__(self):
         return '<Teacher %r>' % self.firstname
@@ -65,7 +66,6 @@ class Teacher(db.Model):
             "id": self.id,
             "phone_number": self.phone_number
         }
-
 
 
 class Student(db.Model):
@@ -81,20 +81,19 @@ class Student(db.Model):
         }
 
 
-
 class Course(db.Model):
     __tablename__ = 'courses'
-    id_course = db.Column(db.Integer, primary_key=True, default=lambda: generate_random_code())
-
+    id_course = db.Column(db.Integer, primary_key=True,
+                          default=lambda: generate_random_code())
     course_name = db.Column(db.String(100), nullable=False, unique=True)
-    id_teacher = db.Column(db.String(36), ForeignKey('teachers.id'), nullable=False)
-
+    id_teacher = db.Column(db.String(36), ForeignKey(
+        'teachers.id'), nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False)
     modified_at = db.Column(db.DateTime(timezone=True), nullable=True)
-    
+
     def __repr__(self):
         return '<Course %r>' % self.course_name
-    
+
     def serialize(self):
         return {
             "id_course": self.id_course,
@@ -105,8 +104,9 @@ class Course(db.Model):
 
 class ATieneC(db.Model):
     __tablename__ = 'atieneC'
-    id_alumno = db.Column(db.String(36), ForeignKey('students.id'), primary_key=True)
-    id_curso = db.Column(db.String(36), ForeignKey('courses.id'), primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('id_course'))
+    id_curso = db.Column(db.Integer, ForeignKey(
+        'id_course'), primary_key=True)
 
     def serialize(self):
         return {
@@ -117,14 +117,16 @@ class ATieneC(db.Model):
 
 class Homework(db.Model):
     __tablename__ = 'homeworks'
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    id_course = db.Column(db.String(36), ForeignKey('courses.id'), primary_key=True)
-    
+    id = db.Column(db.String(36), primary_key=True,
+                   default=lambda: str(uuid.uuid4()))
+    id_course = db.Column(db.String(36), ForeignKey(
+        'courses.id'), primary_key=True)
     name = db.Column(db.String(200), nullable=False, unique=True)
-    deadline = db.Column(db.DateTime, nullable=False, unique=True, default=datetime.utcnow)
+    deadline = db.Column(db.DateTime, nullable=False,
+                         unique=True, default=datetime.utcnow)
     indications = db.Column(db.String(1000), nullable=False, unique=False)
-    id_teacher = db.Column(db.String(36), db.ForeignKey('teachers.id'), nullable=False)
-    
+    id_teacher = db.Column(db.String(36), db.ForeignKey(
+        'teachers.id'), nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False)
     modified_at = db.Column(db.DateTime(timezone=True), nullable=True)
 
@@ -139,45 +141,24 @@ class Homework(db.Model):
         }
 
 
-class Delivery(db.Model):
-    __tablename__ = 'deliveries'
+class Score(db.Model):
+    __tablename__ = 'scores'
     date = db.Column(db.DateTime, primary_key=True)
-    id_homework = db.Column(db.String(36), ForeignKey('homeworks.id'), primary_key=True)
-    id_course = db.Column(db.String(36), ForeignKey('courses.id'), primary_key=True)
-
-
-    file = db.Column(db.String(1000), nullable=False)
-    id_student = db.Column(db.String(36), ForeignKey('students.id'), nullable=False)
-
+    id_homework = db.Column(db.String(36), ForeignKey(
+        'homeworks.id'), primary_key=True)
+    id_course = db.Column(db.String(36), ForeignKey(
+        'courses.id'), primary_key=True)
+    value = db.Column(db.Integer, nullable=False, unique=False, default=False)
+    id_student = db.Column(db.String(36), ForeignKey(
+        'students.id'), nullable=False)
+    id_teacher = db.Column(db.String(36), ForeignKey(
+        'teachers.id'), nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False)
     modified_at = db.Column(db.DateTime(timezone=True), nullable=True)
 
     def serialize(self):
         return {
             "date": self.date,
-            "id_homework": self.id_homework,
-            "id_course": self.id_course,
-            "file": self.file,
-            "id_student": self.id_student
-        }
-
-
-class Score(db.Model):
-    __tablename__ = 'scores'
-    date = db.Column(db.DateTime, primary_key=True)
-    id_homework = db.Column(db.String(36), ForeignKey('homeworks.id'), primary_key=True)
-    id_course = db.Column(db.String(36), ForeignKey('courses.id'), primary_key=True)
-
-    value = db.Column(db.Integer, nullable=False, unique=False, default=False)
-    id_student = db.Column(db.String(36), ForeignKey('students.id'), nullable=False)
-    id_teacher = db.Column(db.String(36), ForeignKey('teachers.id'), nullable=False)
-
-    created_at = db.Column(db.DateTime(timezone=True), nullable=False)
-    modified_at = db.Column(db.DateTime(timezone=True), nullable=True)
-
-    def serialize(self):
-        return {
-            "date" : self.date,
             "id_homework": self.id_homework,
             "id_course": self.id_course,
             "value": self.value,
