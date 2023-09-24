@@ -64,7 +64,8 @@ def serialize(self):
 class Teacher(db.Model):
     __tablename__ = 'teachers'
     id = db.Column(db.String(36), ForeignKey('users.id'), primary_key=True)
-    phone_number = db.Column(db.String(50, nullable=False, unique=True, default=False))
+    phone_number = db.Column(
+        db.String(50, nullable=False, unique=True, default=False))
 
     def __repr__(self):
         return '<Teacher %r>' % self.firstname
@@ -76,15 +77,12 @@ class Teacher(db.Model):
         }
 
 
-
 class Student(db.Model):
     __tablename__ = 'students'
     id = db.Column(db.String(36), ForeignKey('users.id'), primary_key=True)
 
-
     def __repr__(self):
         return '<Student %r>' % self.id
-
 
     def serialize(self):
         return {
