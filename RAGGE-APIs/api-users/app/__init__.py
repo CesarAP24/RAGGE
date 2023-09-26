@@ -220,7 +220,7 @@ def create_app(test_config=None):
             return jsonify({'success': True, 'students': students_list}), returned_code
 
     # HANDLE ERROR ---------------------------------------------------------
-
+    
     @app.errorhandler(404)
     def not_found(error):
         return jsonify({"success": False, "message": 'Resource not found'}), 404
