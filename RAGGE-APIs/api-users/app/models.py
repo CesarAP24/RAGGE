@@ -64,7 +64,7 @@ def serialize(self):
 class Teacher(db.Model):
     __tablename__ = 'teachers'
     id = db.Column(db.String(36), ForeignKey('users.id'), primary_key=True)
-    phone_number = db.Column(db.String(50, nullable=False, unique=True, default=False))
+    phone_number = db.Column(db.String(50), nullable=False, unique=True, default=False)
 
     def __repr__(self):
         return '<Teacher %r>' % self.firstname
@@ -89,4 +89,41 @@ class Student(db.Model):
     def serialize(self):
         return {
             "id": self.id
+        }
+    
+# clase para los codigos de registro
+class Code(db.Model):
+    __tablename__ = 'codes'
+    code = db.Column(db.String(6), primary_key=True, default=lambda: str(uuid.uuid4())[:6])
+    used = db.Column(db.Boolean, nullable=False, default=False)
+    
+
+class Course(db.Model):
+    __tablename__ = 'courses'
+    id_course = db.Column(db.Integer, primary_key=True, default=generate_random_code)
+    course_name = db.Column(db.String(100), nullable=False, unique=True)
+    id_teacher = db.Column(db.String(36), ForeignKey('teacher.id'), nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False)
+    modified_at = db.Column(db.DateTime(timezone=True), nullable=True)
+    
+    def __repr__(self):
+        return '<Course %r>' % self.course_name
+    
+    def serialize(self):
+        return {
+            "id": self.id,
+            "course_name": self.course_name,
+            "id_teacher": self.id_teacher,
+            "id_student": self.id_student,
+        }
+    
+class ATieneC(db.Model):
+    __tablename__ = 'atieneC'
+    id_alumno = db.Column(db.String(36), ForeignKey('students.id'), primary_key=True)
+    id_curso = db.Column(db.String(36), ForeignKey('courses.id'), primary_key=True)
+
+    def serialize(self):
+        return {
+            "id_alumno": self.id_alumno,
+            "id_curso": self.id_curso
         }
