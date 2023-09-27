@@ -56,15 +56,10 @@ def create_app(test_config=None):
             else:
                 dni = body['dni']
 
-            if 'firstname' not in body:
+            if 'name' not in body:
                 list_error.append('Nombre es requerido')
             else:
-                firstname = body['firstname']
-
-            if 'lastname' not in body:
-                list_error.append('Apellido es requerido')
-            else:
-                lastname = body['lastname']
+                name = body['name']
 
             if 'email' not in body:
                 list_error.append('Correo es requerido')
@@ -94,7 +89,7 @@ def create_app(test_config=None):
                         contrasena = generate_password()
 
                         # crear usuario
-                        user = User(firstname=firstname, lastname=lastname, dni=dni, email=email, contrasena=contrasena)
+                        user = User(name=name, dni=dni, email=email, contrasena=contrasena)
                         db.session.add(user)
                         db.session.commit()
 
@@ -185,7 +180,8 @@ def create_app(test_config=None):
 
             if nombre:
                 for alumno in alumnos:
-                    if nombre.lower() in alumno.firstname.lower() or nombre.lower() in alumno.lastname.lower():
+                    # si el nombre esta en el nombre
+                    if nombre.lower() in alumno.name.lower():
                         students_list.append(alumno.serialize())
                 alumnos = students_list
                 students_list = []

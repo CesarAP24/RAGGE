@@ -11,13 +11,11 @@ from flask import (
     request,
     redirect,
     abort,
+    session,
 )
 
-from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity, set_access_cookies, unset_jwt_cookies
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 from sqlalchemy import ForeignKey
-from flask_bcrypt import Bcrypt
 from flask import make_response
 
 
@@ -26,7 +24,6 @@ import uuid
 import json
 import os
 from datetime import datetime
-from flask_bcrypt import Bcrypt
 from datetime import timedelta
 
 
@@ -37,13 +34,10 @@ def create_app(test_config=None):
     app.secret_key = 'pneumonoultramicroscopicsilicovolcanoconiosis'
     app.config['JWT_SECRET_KEY'] = 'pneumonoultramicroscopicsilicovolcanoconiosis'
     app.config['JWT_TOKEN_LOCATION'] = ['cookies']
-    bcrypt = Bcrypt(app)
-    jwt = JWTManager(app)
 
     with app.app_context():
         setup_db(app, test_config['database_path'] if test_config else None)
         CORS(app, origins=['http://localhost:8081'], supports_credentials=True)
-        create_default_data(app, db)
 
     @app.after_request
     def after_request(response):
@@ -53,69 +47,202 @@ def create_app(test_config=None):
         return response
 
     # ROUTES API -----------------------------------------------------------
-    @app.route('/cursos', methods=['GET'])
+    @app.route('/cursos', methods=['GET']) #obtener lista de cursos y sus datos básicos
     def get_cursos():
-        returned_code = 200
-        error_message = ''
-        cursos_list = []
+        code = 200
+        #checkear cookies
+        if session.get('user_id') is None:
+            return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+        
+        id_user = session.get('user_id')
+        cursos = []
 
         try:
-            search_query = request.args.get('search', None)
-            if search_query:
-                cursos = Course.query.filter(
-                    Course.name.like('%{}%'.format(search_query))).all()
-                cursos_list = [curso.serialize() for curso in cursos]
-
+            user = User.query.filter_by(id=id_user).first()
+            if user is None:
+                code = 400
             else:
                 cursos = Course.query.all()
-                cursos_list = [curso.serialize() for curso in cursos]
+                cursos = [curso.serialize() for curso in cursos]
 
-            if not cursos_list:
-                returned_code = 404
-                error_message = 'No course found'
+            if len(cursos) == 0:
+                code = 404
 
         except Exception as e:
-            returned_code = 500
-            error_message = 'Error retrieving courses'
+            print(sys.exc_info())
+            code = 500
+        
 
-        if returned_code != 200:
-            return jsonify({'success': False, 'message': error_message}), returned_code
+        if code == 400:
+            return jsonify({'success': False, 'message': 'User not found'}), 400
+        elif code == 404:
+            return jsonify({'success': False, 'message': 'Courses not found'}), 404
+        elif code != 200:
+            abort(code)
+        else:
+            return jsonify({'success': True, 'courses': cursos}), 200
 
-        return jsonify({'success': True, 'cursos': cursos_list}), returned_code
+    @app.route('/cursos/<string:curso_id>', methods=['GET']) #obtener curso y sus alumnos
+    def get_curso(curso_id):
+        code = 200
+        #checkear cookies
+        if session.get('user_id') is None:
+            return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+        
+        id_user = session.get('user_id')
 
-    @app.route('/cursos', methods=['POST'])
+        try:
+            user = User.query.filter_by(id=id_user).first()
+            if user is None:
+                code = 400
+            else:
+                curso = Course.query.filter_by(id_course=curso_id).first()
+                if curso is None:
+                    code = 404
+                else:
+                    alumnos = ATieneC.query.filter_by(id_course=curso_id).all()
+                    alumnos = [alumno.id_student for alumno in alumnos]
+
+                    curso = curso.serialize()
+                    curso['students'] = alumnos
+                
+        except Exception as e:
+            print(sys.exc_info())
+            code = 500
+        
+        if code == 400:
+            return jsonify({'success': False, 'message': 'User not found'}), 400
+        elif code == 404:
+            return jsonify({'success': False, 'message': 'Course not found'}), 404
+        elif code != 200:
+            abort(code)
+        else:
+            return jsonify({'success': True, 'course': curso}), 200
+
+    @app.route('/cursos', methods=['POST']) #crear curso
     def add_course():
-        try:
-            data = requests.get_json()
+        code = 201
+        #checkear cookies
+        if session.get('user_id') is None:
+            code = 401
+        else:
+            user_id = session.get('user_id')
+            errorList = []
 
-            if 'course_name' not in data or 'id_course' not in data:
-                return jsonify({'success': False, 'message': 'Los campos course_name y course_code son requeridos'}), 400
+            try:
+                if Teacher.query.filter_by(id=user_id).first() is None:
+                    code = 403
+                else:
+                    data = request.get_json()
+                    if "name" in data:
+                        curso = Course.query.filter_by(course_name=data['name']).first()
+                        if curso is None:
+                            curso = Course(course_name=data['name'], id_teacher=user_id, created_at=datetime.now())
+                            db.session.add(curso)
+                            db.session.commit()
+                        else:
+                            code = 409
+                    else:
+                        errorList.append('Nombre del curso no especificado')
+                        code = 400
+            except Exception as e:
+                print(sys.exc_info())
+                code = 500
 
-            new_course = Course(course_name=data['course_name']=data['code_course'])
 
-            db.session.add(new_course)
-            db.session.commit()
+        if code == 400:
+            return jsonify({'success': False, 'message': errorList}), 400
+        elif code != 200:
+            abort(code)
+        else:
+            return jsonify({'success': True, 'message': 'Curso creado correctamente'}), code
 
-            return jsonify({'success': True, 'message': 'Curso agregado correctamente'}), 201
-
-        except Exception as e:
-            return jsonify({'success': False, 'message': 'Error al agregar el curso'}), 500
-
-    @app.route('/cursos/<string:curso_id>', methods=['DELETE'])
+    @app.route('/cursos/<string:curso_id>', methods=['DELETE']) #eliminar curso
     def delete_course(curso_id):
-        try:
-            corso = Course.query.get(curso_id)
+        code = 200
+        #checkear cookies
+        if session.get('user_id') is None:
+            code = 401
+        else:
+            user_id = session.get('user_id')
+            errorList = []
 
-            if not curso:
+            try:
+                confirmation = request.args.get('confirmation', None)
+                if Teacher.query.filter_by(id=user_id).first() is None:
+                    code = 403
+                else:
+                    curso = Course.query.filter_by(id_course=curso_id).first()
+                    if curso is None:
+                        code = 404
+                    else:
+                        if confirmation == curso.course_name:
+                            #borrar relaciones, tareas, notas, etc
+                            #notas
+                            notas = Score.query.filter_by(id_course=curso_id).all()
+                            for nota in notas:
+                                db.session.delete(nota)
+                            db.session.commit()
+
+                            #tareas
+                            tareas = Homework.query.filter_by(id_course=curso_id).all()
+                            for tarea in tareas:
+                                db.session.delete(tarea)
+                            db.session.commit()
+
+                            #relaciones
+                            relaciones = ATieneC.query.filter_by(id_course=curso_id).all()
+                            for relacion in relaciones:
+                                db.session.delete(relacion)
+                            db.session.commit()
+
+                            #curso 
+                            db.session.delete(curso)
+                        else:
+                            code = 400
+                            errorList.append("Confirmation string not matching (should be course's name)")
+                        
+                        curso = curso.serialize()
+
+            except Exception as e:
+                print(sys.exc_info())
+                code = 500
+
+            if code == 400:
+                return jsonify({'success': False, 'message': errorList}), 400
+            elif code == 404:
                 return jsonify({'success': False, 'message': 'Course not found'}), 404
+            elif code != 200:
+                abort(code)
+            else:
+                return jsonify({'success': True, 'message': 'Curso eliminado correctamente', 'curso': curso}), code
 
-            db.session.delete(curso)
-            db.session.commit()
+    @app.route('/courses/<string:teacher_id>', methods=['GET'])
+    def get_teacher_courses(teacher_id):
+        #checkear cookies
+        if session.get('user_id') is None:
+            abort(401)
+        if User.query.filter_by(id=session.get('user_id')).first() is None:
+            abort(403)
+        
+        try:
+            teacher = Teacher.query.get(teacher_id)
 
-            return jsonify({'success': True, 'message': 'Curso deleted successfully'}), 200
+            if teacher is None:
+                return jsonify({'success': False, 'message': 'Profesor no encontrado'}), 404
+
+            courses = Course.query.filter_by(id_teacher=teacher_id).all()
+
+            course_data = [course.serialize() for course in courses]
+
+            if len(course_data) == 0:
+                return jsonify({'success': True, 'message': 'El profesor no tiene cursos asignados', 'courses': course_data}), 200
+            else:
+                return jsonify({'success': True, 'courses': course_data}), 200
 
         except Exception as e:
-            return jsonify({'success': False, 'message': 'Error deleting curso'}), 500
+            abort(500)
+
     # HANDLE ERROR ---------------------------------------------------------
 
     @app.errorhandler(404)
