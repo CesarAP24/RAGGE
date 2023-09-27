@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import ForeignKey
 from datetime import datetime
 import uuid
-from config.app import config
+from config.local import config
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
