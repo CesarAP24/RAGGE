@@ -348,7 +348,7 @@ def create_app(test_config=None):
                         code = 404
                         errorList.append('Student not found')
             else:
-                errorList.append('Student id not specified')
+                errorList.append('Student id not specified (id_student)')
                 code = 400
 
         except Exception as e:
@@ -358,6 +358,8 @@ def create_app(test_config=None):
         
         if code == 400:
             return jsonify({'success': False, 'message': errorList}), 400
+        elif code == 404:
+            return jsonify({'success': False, 'message': errorList}), 404
         elif code != 201:
             abort(code)
         else:
