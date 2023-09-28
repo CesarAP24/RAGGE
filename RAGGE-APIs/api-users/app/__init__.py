@@ -34,7 +34,7 @@ def create_app(test_config=None):
 
     with app.app_context():
         setup_db(app, test_config['database_path'] if test_config else None)
-        CORS(app, origins=['http://localhost:8081'], supports_credentials=True)
+        CORS(app, origins="*", supports_credentials=True)
 
     @app.after_request
     def after_request(response):
@@ -65,7 +65,7 @@ def create_app(test_config=None):
             if len(list_errors) > 0:
                 returned_code = 400
             else:
-                #crear usuario
+                # crear usuario
                 new_user = User(
                     id=str(uuid.uuid4()),
                     name=body['name'],
@@ -78,7 +78,7 @@ def create_app(test_config=None):
                 db.session.add(new_user)
                 db.session.commit()
 
-                #crear profesor
+                # crear profesor
                 new_teacher = Teacher(
                     id=new_user.id,
                     phone_number=body['phone_number']
@@ -88,7 +88,7 @@ def create_app(test_config=None):
                 db.session.commit()
 
                 teacher_id = new_teacher.id
-        
+
         except Exception as e:
             print(sys.exc_info())
             db.session.rollback()
@@ -104,11 +104,11 @@ def create_app(test_config=None):
     @app.route('/teachers/<teacher_id>', methods=['PATCH'])
     def update_teacher(teacher_id):
         code = 200
-        
-        #check cookies
+
+        # check cookies
         if session.get('user_id') is None:
             abort(401)
-        
+
         if Teacher.query.filter_by(id=session.get('user_id')).first() is None:
             abort(403)
 
@@ -116,15 +116,13 @@ def create_app(test_config=None):
             teacher = Teacher.query.get(teacher_id)
             user = User.query.get(teacher_id)
 
-
             if teacher is None:
                 code = 404
                 message = 'Teacher not found'
-            
+
             if user is None:
                 code = 404
                 message = 'User not found'
-
 
             data = request.json
 
@@ -155,12 +153,12 @@ def create_app(test_config=None):
             abort(code)
         else:
             return jsonify({'success': True, 'message': 'Teacher updated successfully'}), code
-        
+
     @app.route('/teachers/<teacher_id>', methods=['DELETE'])
     def delete_teacher(teacher_id):
         code = 204
-        
-        #check cookie
+
+        # check cookie
         if session.get('user_id') is None:
             abort(401)
 
@@ -171,7 +169,7 @@ def create_app(test_config=None):
 
         try:
 
-            #confirmation with name
+            # confirmation with name
             data = request.json
 
             if 'confirmation' not in data:
@@ -180,42 +178,42 @@ def create_app(test_config=None):
             if data['confirmation'] != teacher.name:
                 return jsonify({'success': False, 'message': 'Confirmation failed (should be the name of the teacher)'}), 400
 
-
             teacher = Teacher.query.get(teacher_id)
             user = User.query.get(teacher_id)
 
-            #eliminar notas calificadas por el profesor
+            # eliminar notas calificadas por el profesor
             scores = Score.query.filter_by(id_teacher=teacher_id).all()
             for score in scores:
                 db.session.delete(score)
-            
+
             db.session.commit()
 
-            #eliminar tareas del profesor
+            # eliminar tareas del profesor
             homeworks = Homework.query.filter_by(id_teacher=teacher_id).all()
             for homework in homeworks:
                 db.session.delete(homework)
-            
+
             db.session.commit()
 
-            #eliminar cursos del profesor
+            # eliminar cursos del profesor
             courses = Course.query.filter_by(id_teacher=teacher_id).all()
             for course in courses:
                 # eliminar relaciones ATieneC
-                atienec = ATieneC.query.filter_by(id_curso=course.id_course).all()
+                atienec = ATieneC.query.filter_by(
+                    id_curso=course.id_course).all()
                 for atc in atienec:
                     db.session.delete(atc)
                 db.session.commit()
 
                 db.session.delete(course)
-            
+
             db.session.commit()
 
-            #eliminar profesor
+            # eliminar profesor
             db.session.delete(teacher)
             db.session.commit()
 
-            #eliminar usuario
+            # eliminar usuario
             db.session.delete(user)
             db.session.commit()
 
@@ -227,7 +225,7 @@ def create_app(test_config=None):
     def get_teacher(teacher_id):
         code = 200
 
-        #check cookie
+        # check cookie
         if session.get('user_id') is None:
             abort(401)
         teacher = Teacher.query.filter_by(id=session.get('user_id')).first()
@@ -243,25 +241,25 @@ def create_app(test_config=None):
                 teacher_data = teacher.serialize()
                 user_data = user.serialize()
                 teacher_data.update(user_data)
-                #quitar la contrasena
+                # quitar la contrasena
                 teacher_data.pop('contrasena', None)
         except Exception as e:
             code = 500
             db.session.rollback()
-        
+
         if code == 404:
             return jsonify({'success': False, 'message': message}), code
         elif code != 200:
             abort(code)
         else:
             return jsonify({'success': True, 'teacher': teacher_data}), code
-        
+
     @app.route('/students', methods=['POST'])
     def create_student():
         returned_code = 201
         list_errors = []
 
-        #check cookie
+        # check cookie
         if session.get('user_id') is None:
             abort(401)
 
@@ -312,10 +310,10 @@ def create_app(test_config=None):
 
     @app.route('/students/<student_id>', methods=['DELETE'])
     def delete_student(student_id):
-        #check cookie
+        # check cookie
         if session.get('user_id') is None:
             abort(401)
-            
+
         if Teacher.query.filter_by(id=session.get('user_id')).first() is None:
             abort(403)
 
@@ -380,7 +378,8 @@ def create_app(test_config=None):
                         contrasena = generate_password()
 
                         # crear usuario
-                        user = User(name=name, dni=dni, email=email, contrasena=contrasena)
+                        user = User(name=name, dni=dni, email=email,
+                                    contrasena=contrasena)
                         db.session.add(user)
                         db.session.commit()
 
@@ -405,6 +404,9 @@ def create_app(test_config=None):
 
     @app.route('/login', methods=['POST'])
     def login():
+        # authorization
+        print(request.headers['Authorization'].split(' ')[1])
+        print(request.json)
         return_code = 200
         list_error = []
 
@@ -416,10 +418,10 @@ def create_app(test_config=None):
                 dni = body['dni']
 
             if 'contrasena' not in body:
-                list_error.append('Contraseña es requerida para iniciar sesión')
+                list_error.append(
+                    'Contraseña es requerida para iniciar sesión')
             else:
                 contrasena = body['contrasena']
-
 
             if len(list_error) > 0:
                 return_code = 400
@@ -438,21 +440,20 @@ def create_app(test_config=None):
                         list_error.append('Contraseña incorrecta')
                     else:
                         # si la contraseña coincide guardar en session el id del usuario
-                        session['user_id'] = user.id
+                        cookie = user.id
 
         except Exception as e:
             print(sys.exc_info())
-            returned_code = 500
+            return_code = 500
 
-
-        if returned_code == 400:
-            return jsonify({'success': False, 'message': 'Error en la autenticación', 'errors': list_error}), returned_code
+        if return_code == 400:
+            return jsonify({'success': False, 'message': 'Error en la autenticación', 'errors': list_error}), return_code
         elif return_code == 404:
             return jsonify({'success': False, 'message': 'Usuario no encontrado', 'errors': list_error}), return_code
-        elif returned_code != 200:
-            abort(returned_code)
+        elif return_code != 200:
+            abort(return_code)
         else:
-            return jsonify({'success': True, 'message': 'Usuario autenticado correctamente'}), returned_code
+            return jsonify({'success': True, 'message': 'Usuario autenticado correctamente', "cookie": cookie}), return_code
 
     @app.route('/students', methods=['GET'])
     def get_students():
@@ -467,7 +468,8 @@ def create_app(test_config=None):
 
             alumnos = Student.query.all()
             alumnos = [alumno.serialize() for alumno in alumnos]
-            alumnos = [User.query.filter_by(id=alumno['id']).first() for alumno in alumnos]
+            alumnos = [User.query.filter_by(
+                id=alumno['id']).first() for alumno in alumnos]
 
             if nombre:
                 for alumno in alumnos:
@@ -480,17 +482,19 @@ def create_app(test_config=None):
             if curso:
                 course = Course.query.filter_by(name=curso).first()
                 if course:
-                    alumnos_curso = ATieneC.query.filter_by(id_curso=course.id_course).all()
-                    alumnos_curso = [alumno_curso.id_alumno for alumno_curso in alumnos_curso]
-                    #alumnos q tienen id presente en alumnos_curso
-                    alumnos = [alumno for alumno in alumnos if alumno.id in alumnos_curso]
-            
+                    alumnos_curso = ATieneC.query.filter_by(
+                        id_curso=course.id_course).all()
+                    alumnos_curso = [
+                        alumno_curso.id_alumno for alumno_curso in alumnos_curso]
+                    # alumnos q tienen id presente en alumnos_curso
+                    alumnos = [
+                        alumno for alumno in alumnos if alumno.id in alumnos_curso]
+
             if dni:
                 alumnos = [alumno for alumno in alumnos if dni in alumno.dni]
 
-            
             students_list = [alumno.serialize() for alumno in alumnos]
-            
+
             if len(students_list) == 0:
                 returned_code = 404
                 error_message = 'No students found'
@@ -507,7 +511,7 @@ def create_app(test_config=None):
             return jsonify({'success': True, 'students': students_list}), returned_code
 
     # HANDLE ERROR ---------------------------------------------------------
-    
+
     @app.errorhandler(404)
     def not_found(error):
         return jsonify({"success": False, "message": 'Resource not found'}), 404
