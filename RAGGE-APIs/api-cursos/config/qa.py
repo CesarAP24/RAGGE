@@ -1,3 +1,3 @@
 config = {
-    'DATABASE_URI': 'postgresql://postgres:3028222024@localhost:5432/RAGGEtests',
+    'DATABASE_URI': 'postgresql://postgres:1234@localhost:5432/RAGGEtests',
 }
