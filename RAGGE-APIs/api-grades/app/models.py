@@ -29,8 +29,7 @@ class User(db.Model):
     dni = db.Column(db.String(20), nullable=False, unique=True, default=False)
     email = db.Column(db.String(99), nullable=False,
                       unique=True, default=False)
-    contrasena = db.Column(db.String(255), nullable=False,
-                           unique=True, default=False)
+    contrasena = db.Column(db.String(255), nullable=False, default=False)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False)
     modified_at = db.Column(db.DateTime(timezone=True), nullable=True)
 
@@ -40,8 +39,7 @@ class User(db.Model):
     def serialize(self):
         return {
             "id": self.id,
-            "firstname": self.firstname,
-            "lastname": self.lastname,
+            "name": self.name,
             "dni": self.dni,
             "email": self.email,
             "contrasena": self.contrasena

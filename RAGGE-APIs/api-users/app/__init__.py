@@ -45,71 +45,16 @@ def create_app(test_config=None):
 
     # ROUTES API -----------------------------------------------------------
 
-    @app.route('/teachers', methods=['POST'])
-    def create_teacher():
-        returned_code = 201
-        list_errors = []
-
-        try:
-            body = request.json
-
-            required_fields = ['name', 'email', 'dni', 'code', 'phone_number']
-
-            for field in required_fields:
-                if field not in body:
-                    list_errors.append(field + ' is required')
-
-            if 'dni' in body and len(body['dni']) != 8:
-                list_errors.append('dni must have 8 digits')
-
-            if len(list_errors) > 0:
-                returned_code = 400
-            else:
-                # crear usuario
-                new_user = User(
-                    id=str(uuid.uuid4()),
-                    name=body['name'],
-                    dni=body['dni'],
-                    email=body['email'],
-                    contrasena="R4gg3" + body['dni'][0:4],
-                    created_at=datetime.utcnow()
-                )
-
-                db.session.add(new_user)
-                db.session.commit()
-
-                # crear profesor
-                new_teacher = Teacher(
-                    id=new_user.id,
-                    phone_number=body['phone_number']
-                )
-
-                db.session.add(new_teacher)
-                db.session.commit()
-
-                teacher_id = new_teacher.id
-
-        except Exception as e:
-            print(sys.exc_info())
-            db.session.rollback()
-            returned_code = 500
-
-        if returned_code == 400:
-            return jsonify({'success': False, 'message': 'Error registering teacher', 'errors': list_errors}), returned_code
-        elif returned_code != 201:
-            abort(returned_code)
-        else:
-            return jsonify({'id': teacher_id, 'success': True, 'message': 'Teacher registered successfully'}), returned_code
-
     @app.route('/teachers/<teacher_id>', methods=['PATCH'])
     def update_teacher(teacher_id):
         code = 200
 
         # check cookies
-        if session.get('user_id') is None:
+        if request.headers.get('Authorization') is None:
             abort(401)
 
-        if Teacher.query.filter_by(id=session.get('user_id')).first() is None:
+        cookie = request.headers.get('Authorization').split(' ')[1]
+        if Teacher.query.filter_by(id=cookie).first() is None:
             abort(403)
 
         try:
@@ -156,21 +101,26 @@ def create_app(test_config=None):
 
     @app.route('/teachers/<teacher_id>', methods=['DELETE'])
     def delete_teacher(teacher_id):
-        code = 204
+        code = 200
 
         # check cookie
-        if session.get('user_id') is None:
+        if request.headers.get('Authorization') is None:
             abort(401)
 
-        teacher = Teacher.query.filter_by(id=session.get('user_id')).first()
-
-        if teacher is None or teacher_id != session.get('user_id'):
+        cookie = request.headers.get('Authorization').split(' ')[1]
+        teacher = Teacher.query.filter_by(id=cookie).first()
+        if Teacher.query.filter_by(id=cookie).first() is None:
             abort(403)
 
         try:
 
             # confirmation with name
             data = request.json
+
+            teacher = User.query.get(teacher_id)
+
+            if teacher is None:
+                return jsonify({'success': False, 'message': 'Teacher not found'}), 404
 
             if 'confirmation' not in data:
                 return jsonify({'success': False, 'message': 'Confirmation is required (should be the name of the teacher)'}), 400
@@ -218,18 +168,57 @@ def create_app(test_config=None):
             db.session.commit()
 
         except Exception as e:
+            print(sys.exc_info())
             db.session.rollback()
             code = 500
+
+        if code != 200:
+            abort(code)
+        else:
+            return jsonify({'success': True, 'message': 'Teacher deleted successfully'}), code
+
+    @app.route('/teachers', methods=['GET'])
+    def get_teachers():
+        code = 200
+
+        # check cookie
+        if request.headers.get('Authorization') is None:
+            abort(401)
+
+        cookie = request.headers.get('Authorization').split(' ')[1]
+        if User.query.filter_by(id=cookie).first() is None:
+            abort(403)
+
+        try:
+            teachers = Teacher.query.all()
+            teachers = [teacher.serialize() for teacher in teachers]
+            teachers = [User.query.filter_by(
+                id=teacher['id']).first() for teacher in teachers]
+            teachers = [teacher.serialize() for teacher in teachers]
+            # quitar la contrasena
+            for teacher in teachers:
+                teacher.pop('contrasena', None)
+        except Exception as e:
+            code = 500
+            db.session.rollback()
+
+        if code != 200:
+            abort(code)
+        else:
+            return jsonify({'success': True, 'teachers': teachers}), code
+        
 
     @app.route('/teachers/<teacher_id>', methods=['GET'])
     def get_teacher(teacher_id):
         code = 200
 
         # check cookie
-        if session.get('user_id') is None:
+        if request.headers.get('Authorization') is None:
             abort(401)
-        teacher = Teacher.query.filter_by(id=session.get('user_id')).first()
-        if teacher is None or teacher_id != session.get('user_id'):
+
+        cookie = request.headers.get('Authorization').split(' ')[1]
+        teacher = Teacher.query.filter_by(id=cookie).first()
+        if teacher is None or teacher_id != cookie:
             abort(403)
 
         try:
@@ -260,10 +249,11 @@ def create_app(test_config=None):
         list_errors = []
 
         # check cookie
-        if session.get('user_id') is None:
+        if request.headers.get('Authorization') is None:
             abort(401)
 
-        if Teacher.query.filter_by(id=session.get('user_id')).first() is None:
+        cookie = request.headers.get('Authorization').split(' ')[1]
+        if Teacher.query.filter_by(id=cookie).first() is None:
             abort(403)
 
         try:
@@ -278,26 +268,38 @@ def create_app(test_config=None):
             if len(list_errors) > 0:
                 returned_code = 400
             else:
-                new_user = User(
-                    id=str(uuid.uuid4()),
-                    name=body['name'],
-                    dni=body['dni'],
-                    email=body['email'],
-                    contrasena="R4gg3" + body['dni'][0:4],
-                    created_at=datetime.utcnow()
-                )
+                #checkear que no exista
+                if User.query.filter_by(dni=body['dni']).first() is not None:
+                    returned_code = 400
+                    list_errors.append('El DNI ya está registrado')
+                elif User.query.filter_by(email=body['email']).first() is not None:
+                    returned_code = 400
+                    list_errors.append('El correo ya está registrado')
+                else:
+                    # crear usuario
+                    new_user = User(
+                        id=str(uuid.uuid4()),
+                        name=body['name'],
+                        dni=body['dni'],
+                        email=body['email'],
+                        contrasena="R4gg3" + body['dni'][0:4],
+                        created_at=datetime.utcnow()
+                    )
 
-                db.session.add(new_user)
+                    db.session.add(new_user)
 
-                new_student = Student(
-                    id=new_user.id
-                )
+                    db.session.commit()
 
-                db.session.add(new_student)
+                    new_student = Student(
+                        id=new_user.id
+                    )
 
-                db.session.commit()
+                    db.session.add(new_student)
+
+                    db.session.commit()
 
         except Exception as e:
+            print(sys.exc_info())
             db.session.rollback()
             returned_code = 500
 
@@ -311,10 +313,11 @@ def create_app(test_config=None):
     @app.route('/students/<student_id>', methods=['DELETE'])
     def delete_student(student_id):
         # check cookie
-        if session.get('user_id') is None:
+        if request.headers.get('Authorization') is None:
             abort(401)
 
-        if Teacher.query.filter_by(id=session.get('user_id')).first() is None:
+        cookie = request.headers.get('Authorization').split(' ')[1]
+        if Teacher.query.filter_by(id=cookie).first() is None:
             abort(403)
 
         try:
@@ -322,11 +325,31 @@ def create_app(test_config=None):
 
             if student is None:
                 return jsonify({'success': False, 'message': 'Estudiante no encontrado'}), 404
+            
 
+            #eliminar relaciones ATieneC
+            atienec = ATieneC.query.filter_by(id_alumno=student_id).all()
+            for atc in atienec:
+                db.session.delete(atc)
+            db.session.commit()
+
+            #eliminar notas calificadas por el profesor
+            scores = Score.query.filter_by(id_student=student_id).all()
+            for score in scores:
+                db.session.delete(score)
+            db.session.commit()
+
+            #eliminar estudiante
             db.session.delete(student)
             db.session.commit()
 
-            return jsonify({'success': True, 'message': 'Estudiante eliminado exitosamente'}), 204
+            #eliminar usuario
+            user = User.query.filter_by(id=student_id).first()
+            db.session.delete(user)
+            db.session.commit()
+
+
+            return jsonify({'success': True, 'message': 'Estudiante eliminado exitosamente'}), 200
 
         except Exception as e:
             print(sys.exc_info())
@@ -360,6 +383,11 @@ def create_app(test_config=None):
             else:
                 code = body['code']
 
+            if 'phone_number' not in body:
+                list_error.append('Es requerido un número de teléfono ("phone_number")')
+            else:
+                phone_number = body['phone_number']
+
             if len(list_error) > 0:
                 returned_code = 400
             else:
@@ -370,25 +398,40 @@ def create_app(test_config=None):
                     list_error.append('Código de verificación incorrecto')
                 else:
                     # verificar si el codigo ya fue usado
-                    if codigo.used:
+                    if User.query.filter_by(dni=dni).first() is not None:
                         returned_code = 400
-                        list_error.append('Código de verificación incorrecto')
+                        list_error.append('El DNI ya está registrado')
+                    elif User.query.filter_by(email=email).first() is not None:
+                        returned_code = 400
+                        list_error.append('El correo ya está registrado')
+                    elif Teacher.query.filter_by(phone_number=phone_number).first() is not None:
+                        returned_code = 400
+                        list_error.append('El número de teléfono ya está registrado')
                     else:
-                        # generar contraseña
-                        contrasena = generate_password()
+                        if codigo.used:
+                            returned_code = 400
+                            list_error.append('Código de verificación incorrecto')
+                        else:
+                            # generar contraseña
+                            contrasena = "R4gg3" + dni[0:4]
 
-                        # crear usuario
-                        user = User(name=name, dni=dni, email=email,
-                                    contrasena=contrasena)
-                        db.session.add(user)
-                        db.session.commit()
+                            # crear usuario
+                            user = User(name=name, dni=dni, email=email,
+                                        contrasena=contrasena, created_at=datetime.utcnow())
+                            db.session.add(user)
+                            db.session.commit()
 
-                        # marcar codigo como usado
-                        codigo.used = True
-                        db.session.commit()
 
-                        # guardar en session el id del usuario
-                        session['user_id'] = user.id
+                            teacher = Teacher(id=user.id, phone_number=phone_number)
+                            db.session.add(teacher)
+                            db.session.commit()
+
+                            # marcar codigo como usado
+                            codigo.used = True
+                            db.session.commit()
+
+                            # guardar en session el id del usuario
+                            cookie = user.id
 
         except Exception as e:
             print(sys.exc_info())
@@ -400,13 +443,11 @@ def create_app(test_config=None):
         elif returned_code != 201:
             abort(returned_code)
         else:
-            return jsonify({'success': True, 'message': 'Usuario registrado correctamente', 'contrasena': contrasena}), returned_code
+            return jsonify({'success': True, 'message': 'Usuario registrado correctamente', 'contrasena': contrasena, 'cookie': cookie}), returned_code
 
     @app.route('/login', methods=['POST'])
     def login():
         # authorization
-        print(request.headers['Authorization'].split(' ')[1])
-        print(request.json)
         return_code = 200
         list_error = []
 
