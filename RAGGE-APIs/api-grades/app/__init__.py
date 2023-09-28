@@ -34,15 +34,22 @@ def create_app(config=None):
     # ROUTES API -----------------------------------------------------------
     @app.route('/courses/<course_id>/homeworks/<homework_id>', methods=['GET'])
     def get_specific_homework(course_id, homework_id):
+        if request.headers.get('Authorization') is None:
+            abort(401)
+
+        cookie = request.headers.get('Authorization').split(' ')[1]
+        if User.query.filter_by(id=cookie).first() is None:
+            abort(403)
         try:
             course = Course.query.get(course_id)
 
             if course is None:
                 return jsonify({'success': False, 'message': 'Curso no encontrado'}), 404
 
-            homework = Homework.query.get(homework_id)
+            homework = Homework.query.filter_by(id=homework_id, id_course=course_id).first()
+            print(homework)
 
-            if homework is None or homework.id_course != course_id:
+            if not(homework):
                 return jsonify({'success': False, 'message': 'Tarea no encontrada en este curso'}), 404
 
             homework_data = homework.serialize()
@@ -52,6 +59,7 @@ def create_app(config=None):
         except Exception as e:
             print(sys.exc_info())
             return jsonify({'success': False, 'message': 'Error al obtener la tarea (homework)'}), 500
+
 
     @app.route('/courses/<course_id>/homeworks', methods=['POST'])
     def create_homework(course_id):
@@ -74,9 +82,24 @@ def create_app(config=None):
 
             fields = ['name', 'deadline', 'indications']
 
-            for field in fields:
-                if field not in data:
-                    list_errors.append(field + ' is required')
+            if 'name' not in data:
+                list_errors.append('name is required')
+            elif len(data['name']) > 200:
+                list_errors.append('name must be less than 200 characters')
+            
+            if 'deadline' not in data:
+                list_errors.append('deadline is required with this format: YYYY-MM-DD HH:MM:SS')
+            else:
+                try:
+                    datetime.strptime(data['deadline'], '%Y-%m-%d %H:%M:%S')
+                except ValueError:
+                    list_errors.append('deadline must have this format: YYYY-MM-DD HH:MM:SS')
+            
+            if 'indications' not in data:
+                list_errors.append('indications is required')
+            elif len(data['indications']) > 1000:
+                list_errors.append('indications must be less than 1000 characters')
+            
 
             if len(list_errors) > 0:
                 code = 400
@@ -108,6 +131,12 @@ def create_app(config=None):
 
     @app.route('/courses/<course_id>/homeworks', methods=['GET'])
     def get_course_homeworks(course_id):
+        if request.headers.get('Authorization') is None:
+            abort(401)
+
+        cookie = request.headers.get('Authorization').split(' ')[1]
+        if User.query.filter_by(id=cookie).first() is None:
+            abort(403)
         try:
             course = Course.query.get(course_id)
 
@@ -127,30 +156,76 @@ def create_app(config=None):
             print(sys.exc_info())
             return jsonify({'success': False, 'message': 'Error al obtener tareas del curso'}), 500
 
-    @app.route('/courses/<course_id>/homeworks/<homework_id>/students/<student_id>/scores', methods=['POST'])
-    def create_score(course_id, homework_id, student_id):
+
+    @app.route('/courses/<course_id>/homeworks/<homework_id>/scores', methods=['GET'])
+    def get_homework_students(course_id, homework_id):
+        if request.headers.get('Authorization') is None:
+            abort(401)
+
+        cookie = request.headers.get('Authorization').split(' ')[1]
+        if Teacher.query.filter_by(id=cookie).first() is None:
+            abort(403)
+
+        code = 200
+        try:
+            #check course exists
+            if Course.query.get(course_id) is None:
+                return jsonify({'success': False, 'message': 'Curso no encontrado'}), 404
+            #check homework exists
+            if Homework.query.filter_by(id=homework_id, id_course=course_id).first() is None:
+                return jsonify({'success': False, 'message': 'Tarea no encontrada en este curso'}), 404
+            
+            scores = Score.query.filter_by(id_homework=homework_id, id_course=course_id).all()
+
+            scores = [score.serialize() for score in scores]
+
+            #añadir datos del estudiante
+            for score in scores:
+                student = User.query.get(score['id_student'])
+                score['student_name'] = student.name
+                
+            
+
+            return jsonify({'success': True, 'scores': scores}), code
+        except Exception as e:
+            print(sys.exc_info())
+            code = 500
+            return jsonify({'success': False, 'message': 'Error al obtener las notas'}), code
+
+
+    @app.route('/courses/<course_id>/homeworks/<homework_id>/scores', methods=['POST'])
+    def create_score(course_id, homework_id):
         code = 201
         list_errors = []
 
-        #check cookie
-        if session.get('user_id') is None:
+        if request.headers.get('Authorization') is None:
             abort(401)
-        
-        if Teacher.query.filter_by(id=session.get('user_id')).first() is None:
+
+        cookie = request.headers.get('Authorization').split(' ')[1]
+        if Teacher.query.filter_by(id=cookie).first() is None:
             abort(403)
         
         try:
             course = Course.query.get(course_id)
 
+            try:
+                data = request.json
+            except:
+                return jsonify({'success': False, 'message': 'Error al obtener JSON'}), 400
+        
+
+            if 'id_student' not in data:
+                return jsonify({'success': False, 'message': 'id_student is required'}), 400
+
             if course is None:
                 return jsonify({'success': False, 'message': 'Curso no encontrado'}), 404
 
-            homework = Homework.query.get(homework_id)
+            homework = Homework.query.filter_by(id=homework_id, id_course=course_id).first()
 
-            if homework is None or homework.id_course != course_id:
+            if not(homework):
                 return jsonify({'success': False, 'message': 'Tarea no encontrada en este curso'}), 404
 
-            student = Student.query.get(student_id)
+            student = Student.query.get(data['id_student'])
 
             if student is None:
                 return jsonify({'success': False, 'message': 'Estudiante no encontrado'}), 404
@@ -159,7 +234,7 @@ def create_app(config=None):
 
             if 'value' not in data:
                 list_errors.append('value is required')
-            elif data['value'] < 0 or data['value'] > 20:
+            elif float(data['value']) < 0 or float(data['value']) > 20:
                 list_errors.append('value must be between 0 and 20')
             
 
@@ -171,8 +246,8 @@ def create_app(config=None):
                     id_homework=homework_id,
                     id_course=course_id,
                     value=data['value'],
-                    id_student=student_id,
-                    id_teacher=session.get('user_id'),
+                    id_student=data['id_student'],
+                    id_teacher=cookie,
                     created_at=datetime.utcnow()
                 )
 
