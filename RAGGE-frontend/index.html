@@ -37,33 +37,24 @@
 	//checkear cookies
 	const message = document.getElementById('message');
 	var cookie = document.cookie;
-	//fetch para checkear que las cookies sean validas
-	fetch('http://localhost:3000/cookie', {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json',
-			'Cookie': cookie
-		}
-	}).then(response => {
-		if (response.status == 200) {
-			window.location.href = "http://localhost:3000/home.html";
-		} else {
-			window.location.href = "login.html";
-		}
-	}).catch(error => {
-		console.log(error);
-		message.innerHTML = "Error al leer cookies";
-		message.classList.add('error');
 
+	//fetch para checkear que las cookies sean validas
+	if (cookie){
+		window.location.href = "main.html";
+	}
+	
+
+	message.innerHTML = "Error al leer cookies";
+	message.classList.add('error');
+
+	setTimeout(() => {
+		message.classList.remove('error');
+		message.innerHTML = "Redireccionando...";
+		
 		setTimeout(() => {
-			message.classList.remove('error');
-			message.innerHTML = "Redireccionando...";
-			
-			setTimeout(() => {
-				window.location.href = "login.html";
-			}, 1000);
-		}, 2000);
-	});
+			window.location.href = "login.html";
+		}, 1000);
+	}, 2000);
 </script>
 
 </html>

@@ -28,6 +28,14 @@
         justify-content: space-between;
         align-items: center;
     }
+
+    #reorder-3{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
     .margin-10{
         margin: 0 10px;
     }
@@ -57,10 +65,9 @@
                     </div>
                     <div class="margin-10">
                         <label for="Nombres">Nombres*:</label>
-                        <input type="text" id="Nombres" name="Nombres" placeholder="ingresa tu nombre" required> 
+                        <input type="text" id="Nombres" name="name" placeholder="ingresa tu nombre" required> 
                     </div>
-                </div>
-                
+                </div>    
 
                 <div id="reorder-2">
                     <div class="margin-10">
@@ -69,11 +76,16 @@
                     </div>
                     <div class="margin-10">
                         <label for="correo">Correo de contacto*:</label>
-                        <input type="email" id="correo" name="correo" placeholder="ingresa tu correo" required>
+                        <input type="email" id="correo" name="email" placeholder="ingresa tu correo" required>
                     </div>
                 </div>
 
-
+                <div id="reorder-3">
+                    <div class="margin-10">
+                        <label for="phone_number" >Número de telefono*:</label>
+                        <input type="text" id="phone_numer" name="phone_number" placeholder="Ingresa tu número de telefono" required>   
+                    </div>
+                </div>
                 
                 <button type="submit" class="btn" id="btn">Registrarse</button>
 
@@ -81,6 +93,47 @@
             </form>
         </div>
     </div>
+
+    <script>
+        
+        const url = "http://localhost:5000/register";
+
+        let boton = document.getElementById("btn");
+        boton.addEventListener("click", function(e){
+            e.preventDefault();
+            //mandar al servidor los datos
+
+            let formulario = document.querySelector("form");
+            let datos = new FormData(formulario);
+            let json = JSON.stringify(Object.fromEntries(datos));
+
+            console.log(json);
+
+            fetch(url, {
+                method: "POST",
+                body: json,
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": document.cookie
+                }
+            }).then(function(response){
+                return response.json();
+            }).then(function(data){
+                //aqui va el codigo para cuando el servidor responda
+                console.log(data);
+                //los 4 primeros digitos del dni
+                document.cookie = "cookie " + data.cookie;
+                let dni = document.getElementById("dni").value;
+                let dni4 = dni.substring(0,4);
+                //verificaciones de num ero de telefono 
+
+                alert("Tu contraseña es: R4gg3" + dni4);
+
+            }).catch(function(error){
+                //codigo para cuando ocurra un error
+            });
+        });
+    </script>
 </body>
 
 </html>
