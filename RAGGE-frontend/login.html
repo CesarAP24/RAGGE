@@ -12,6 +12,10 @@
         background-color:rgba(255,255,255,0.85);
     }
 
+    input#pass{
+        margin-bottom: 8px;
+    }
+
     .login-container {
         width: 50%;
         height: 100vh;
@@ -24,6 +28,12 @@
 
     .formulario{
         width: 63%;
+    }
+
+    .errores{
+        color: red;
+        font-size: 12px; /* tamaño de fuente*/
+        margin-bottom: 5px;
     }
     </style>
 </head>
@@ -43,13 +53,76 @@
                 <input type="text" id="dni" name="dni" placeholder="ingresa tu dni" required>
 
                 <label for="pass">Contraseña*:</label>
-                <input type="password" id="pass" name="pass" placeholder="*******" required>
+                <input type="password" id="pass" name="contrasena" placeholder="*******" required>
 
-                <button type="submit" class="btn">Ingresar</button>
+                <div id="errores">
+                </div>
+
+
+                <button type="submit" class="btn" id="btn">Ingresar</button>
                 <p>¿No tienes cuenta? <a href="register.html">Registrate</a> </p>
             </form>
         </div>
     </div>
+
+    <script>
+        const url = "http://localhost:5000/login";
+        let boton = document.getElementById("btn");
+
+        boton.addEventListener("click", function(e){
+            e.preventDefault();
+
+            let formulario = document.querySelector("form");
+            let datos = new FormData(formulario);
+            let json = JSON.stringify(Object.fromEntries(datos));
+
+            console.log(json);
+
+            //fetch
+
+            fetch(url, {
+                method: "POST",
+                body: json,
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            }).then(function(response){
+                return response.json();
+            }).then(function(data){
+
+                if(!data.success){
+                    let errores = []
+
+                    for (let i=0; i<data.errors.length; i++){ //llena la lista de errores
+                        console.log(data.errors[i]);
+                        errores.push(document.createElement("li"));
+                        errores[i].setAttribute("class", "errores"); //le asigno al objeto la clase "errores" de css
+                        errores[i].innerHTML = data.errors[i]; //asgina contenido
+                    }
+
+                    console.log(errores);
+
+                    document.getElementById("errores").innerHTML = ""; //inicializa el div de errores
+                    for (let i=0; i<errores.length; i++){
+                        document.getElementById("errores").appendChild(errores[i]);
+                        console.log(errores[i]);
+                    }
+                    return;
+                }
+
+                document.cookie = "cookie " + data.cookie;
+                window.location.href = "main.html";
+
+            }).catch(function(error){
+                console.log(error);
+            })
+        })
+
+
+    </script>
+
+
+
 </body>
 
 </html>

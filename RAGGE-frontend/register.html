@@ -75,6 +75,11 @@
         margin: 0;
     }
 
+    .errores{
+        color: red;
+        font-size: 12px; /* tamaño de fuente*/
+        margin-bottom: 5px;
+    }
 
     </style>
 </head>
@@ -128,6 +133,9 @@
                         </div>
                     </div>
                 </div>
+
+                <div id="errores">
+                </div>    
                 
                 <button type="submit" class="btn" id="btn">Registrarse</button>
 
@@ -160,16 +168,32 @@
             }).then(function(response){
                 return response.json();
             }).then(function(data){
+                if (!data.success){
+                    let errores = [];
+
+                    for (let i=0; i<data.errors.length; i++){
+                        console.log(data.errors[i]);
+                        errores.push(document.createElement("li"));
+                        errores[i].setAttribute("class", "errores");
+                        errores[i].innerHTML = data.errors[i];
+                    }
+
+                    document.getElementById("errores").innerHTML = "";
+                    for (let i=0; i<errores.length; i++){
+                        document.getElementById("errores").appendChild(errores[i]);
+                        console.log(errores[i]);
+                    }
+
+                    return;
+                }
                 //aqui va el codigo para cuando el servidor responda
                 console.log(data);
-                //los 4 primeros digitos del dni
-                document.cookie = "cookie " + data.cookie;
-                let dni = document.getElementById("dni").value;
-                let dni4 = dni.substring(0,4);
-                
+                //los 4 primeros digi   tos del dni
+                document.cookie = "cookie " + data.cookie; 
+                let pass = data.contrasena;
+                alert("Tu contraseña es: " + pass);
 
-
-                alert("Tu contraseña es: R4gg3" + dni4);
+                window.location.href = "main.html";
 
             }).catch(function(error){
                 //codigo para cuando ocurra un error
