@@ -371,35 +371,41 @@ def create_app(test_config=None):
         try:
             body = request.json
 
-            if 'dni' not in body:
+            if 'dni' not in body or body['dni'] == '':
                 list_error.append('DNI es requerido')
+            elif len(body['dni']) != 8:
+                list_error.append('DNI debe tener 8 dígitos')
             else:
                 dni = body['dni']
 
-            if 'name' not in body:
+            if 'name' not in body or body['name'] == '':
                 list_error.append('Nombre es requerido')
             else:
                 name = body['name']
 
-            if 'email' not in body:
+            if 'email' not in body or body['email'] == '':
                 list_error.append('Correo es requerido')
+            elif '@' not in body['email'] or '.' not in body['email']:
+                list_error.append('Correo inválido')
             else:
                 email = body['email']
 
-            if 'code' not in body:
+            if 'code' not in body or body['code'] == '':
                 list_error.append('Es requerido un código de verificación')
             else:
                 code = body['code']
 
             if 'phone_number' not in body:
                 list_error.append('Es requerido un número de teléfono ("phone_number")')
+            elif len(str(body['phone_number'])) != 9:
+                list_error.append('Número de teléfono inválido')
             else:
                 phone_number = body['phone_number']
 
             if len(list_error) > 0:
                 returned_code = 400
             else:
-                # verificar codigo de verificacion
+                # verificar campo codigo de verificacion lleno
                 codigo = Code.query.filter_by(code=code).first()
                 if codigo is None:
                     returned_code = 400
@@ -462,12 +468,12 @@ def create_app(test_config=None):
 
         try:
             body = request.json
-            if 'dni' not in body:
+            if 'dni' not in body or body['dni'] == '':
                 list_error.append('DNI es requerido para iniciar sesión')
             else:
                 dni = body['dni']
 
-            if 'contrasena' not in body:
+            if 'contrasena' not in body or body['contrasena'] == '':
                 list_error.append(
                     'Contraseña es requerida para iniciar sesión')
             else:
@@ -609,7 +615,8 @@ def create_app(test_config=None):
             }
 
             response = requests.post(BASE_URL, json=json, headers=headers, auth=BearerAuth('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'))
-            
+            print(response.status_code)
+
             if response.status_code != 202:
                 return jsonify({'success': False, 'message': 'Erro al enviar, intente más tarde'}), 500
 
