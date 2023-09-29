@@ -22,7 +22,7 @@ def create_app(config=None):
     app = Flask(__name__)
     with app.app_context():
         setup_db(app, config['database_path'] if config else None)
-        CORS(app, origins='http://localhost:8080')
+        CORS(app, origins='*', supports_credentials=True)
 
     @app.after_request
     def after_request(response):

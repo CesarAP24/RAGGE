@@ -608,7 +608,7 @@ def create_app(test_config=None):
                 "Content-Type": "application/json"
             }
 
-            response = requests.post(BASE_URL, json=json, headers=headers, auth=BearerAuth('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'))
+            response = requests.post(BASE_URL, json=json, headers=headers, auth=BearerAuth('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'))
             
             if response.status_code != 202:
                 return jsonify({'success': False, 'message': 'Erro al enviar, intente más tarde'}), 500

@@ -5,15 +5,143 @@
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/content.css">
     <link rel="stylesheet" href="css/loading.css">
+    <link rel="stylesheet" href="css/floatingWindow.css">
     <style>
         .tarjeta{
             max-width: 300px;
         }
+
+        form{
+            width: 30%;
+            min-width: 300px;
+            max-width: 500px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+        }
+        form *{
+            margin: 10px 0;
+        }
+
+        form button{
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: 1px solid #000;
+            transition: 0.25s ease;
+        }
+
+        form button:hover{
+            background: #fff;
+            color: #000;
+            border: 1px solid #000;
+            transition: 0.25s ease;
+        }
+
+        form button:disabled{
+            background: #ccc;
+            color: #fff;
+            border: 1px solid #ccc;
+            transition: 0.25s ease;
+        }
+
+        form input{
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #000;
+        }
+
+        form textarea{
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #000;
+            resize: none;
+        }
+
+        form select{
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #000;
+        }
+
+        .cross{
+            width: 100%;
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-end;
+            margin: 0;
+            margin-bottom: -38px;
+        }
+
+        .cross p{
+            box-sizing: border-box;
+            z-index: 100;
+            font-size: 20px;
+            padding: 10px;
+            color: gray;
+            text-decoration: none;
+            cursor: pointer;
+            margin: 0;
+            font-family: Consolas;
+        }
+
+        .cross p:hover{
+            color: #000;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
     </style>
 </head>
 
 
 <body>
+    <div class="floating-window" style="display: none;" id="floating-window">
+        <form id="curso-form" style="display: none;">
+            <div class="cross"><p class="cross-a">x</p></div>
+            <label>Crear curso:</label>
+                <input type="text" name="name" id="nombre" placeholder="Escribir nombre del curso">
+                <p id="create-user-success" style="color: green;"></p>
+            <button id="btn-create-course">Crear Curso</button>
+        </form>
+
+        <form id="tarea-form" style="display: none;">
+            <div class="cross"><p class="cross-a">x</p></div>
+            <label>Crear tarea:</label>
+                <!-- elegir curso de lista de cursos disponibles -->
+                <input type="text" name="name" id="nombre-tarea" placeholder="Escribir nombre de la tarea">
+                <select name="curso" id="curso-select">
+                </select>
+                <textarea name="descripcion" id="descripcion" cols="30" rows="10" placeholder="Escribir descripción de la tarea..."></textarea>
+                <!-- dead line, formato YYYY-MM-DD HH:MM:SS -->
+                <!-- fecha -->
+                <input type="date" name="fecha" id="fecha" placeholder="Fecha de entrega">
+                <!-- hora -->
+                <input type="time" name="hora" id="hora" placeholder="Hora de entrega">
+
+            <p id="create-homework-success" style="color: green;"></p>
+                
+            <button id="btn-create-homework">Crear Tarea</button>
+        </form>
+
+        <form id="alumno-form" style="display: none;">
+            <div class="cross"><p class="cross-a">x</p></div>
+            <label>Crear alumno:</label>
+                <input type="text" name="name" id="nombre-student" placeholder="Nombre del alumno">
+                <input type="text" name="DNI" id="DNI-student" placeholder="DNI del alumno (8 digitos)">
+                <input type="text" name="email" id="email-student" placeholder="Email del alumno (email@utec.edu.pe)">
+
+            <p id="create-student-success" style="color: green;"></p>
+            <button id="create-student">Crear Alumno</button>
+        </form>
+    </div>
+
     <div id="pantalla-carga" class="pantalla-carga">
         <div class="spinner"></div>
     </div>
@@ -37,19 +165,19 @@
                         <div class="tarjeta">
                             <div class="tarjeta-contenido">
                                 <h3>Crear un nuevo curso</h3>
-                                <button>Crear curso</button>
+                                <button id="show-curso-form">Crear curso</button>
                             </div>
                         </div>
                         <div class="tarjeta">
                             <div class="tarjeta-contenido">
                                 <h3>Crear una nueva tarea</h3>
-                                <button>Crear Tarea</button>
+                                <button id="show-homework-form">Crear Tarea</button>
                             </div>
                         </div>
                         <div class="tarjeta">
                             <div class="tarjeta-contenido">
-                                <h3>Gestiona todas las tareas.</h3>
-                                <button>Calificar tareas</button>
+                                <h3>Registrar un nuevo alumno.</h3>
+                                <button id="show-student-form">Registrar Alumno</button>
                             </div>
                         </div>
                     </div>
@@ -68,12 +196,289 @@
                 <a class="navbar-item" href="misCursos.html">Mis cursos</a>
                 <a class="navbar-item" href="misAlumnos.html">Mis alumnos</a>
                 <a class="navbar-item" href="misDatosPersonales.html">Mis datos personales</a>
-                <a class="navbar-item" href="misTareas.html">Mis tareas</a>
-                <a class="navbar-item" href="misNotas.html">Mis notas</a>
                 <a class="navbar-item" href="soporte.html">Soporte</a>
             </div>
         </div>
     </section>
+
+    <script>
+        const cursoForm = document.getElementById("curso-form");
+
+        const tareaForm = document.getElementById("tarea-form");
+        const alumnoForm = document.getElementById("alumno-form");
+
+        const showCursoForm = document.getElementById("show-curso-form");
+        const showTareaForm = document.getElementById("show-homework-form");
+        const showAlumnoForm = document.getElementById("show-student-form");
+
+        const floatingWindow = document.getElementById("floating-window");
+
+        const cross = document.getElementsByClassName("cross-a");
+
+        //asignar funcion a las x
+        for (let i = 0; i < cross.length; i++) {
+            cross[i].addEventListener("click", () => {
+                floatingWindow.style.display = "none";
+            });
+        }
+
+        showCursoForm.addEventListener("click", () => {
+            floatingWindow.style.display = "flex";
+            cursoForm.style.display = "flex";
+            tareaForm.style.display = "none";
+            alumnoForm.style.display = "none";
+        });
+
+        showTareaForm.addEventListener("click", () => {
+            floatingWindow.style.display = "flex";
+            cursoForm.style.display = "none";
+            tareaForm.style.display = "flex";
+            alumnoForm.style.display = "none";
+
+            //cargar cursos
+            let id_teacher = document.cookie.split(" ")[1];
+            document.getElementById("curso-select").innerHTML = "";
+            const url = "http://127.0.0.1:5002/teachers/" + id_teacher + "/courses";
+
+            fetch(url, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": document.cookie
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    if (data.success) {
+                        for (let i = 0; i < data.courses.length; i++) {
+                            let option = document.createElement("option");
+                            option.value = data.courses[i].id_course;
+                            option.innerHTML = data.courses[i].course_name;
+                            document.getElementById("curso-select").appendChild(option);
+                        }
+                    } else {
+                        alert("Error al cargar cursos");
+                    }
+                });
+        });
+
+        showAlumnoForm.addEventListener("click", () => {
+            floatingWindow.style.display = "flex";
+            cursoForm.style.display = "none";
+            tareaForm.style.display = "none";
+            alumnoForm.style.display = "flex";
+        });
+
+
+
+        //crear curso
+        const btnCreateCourse = document.getElementById("btn-create-course");
+
+        btnCreateCourse.addEventListener("click", (e) => {
+            e.preventDefault();
+
+
+            const nombre = document.getElementById("nombre").value;
+            const data = {
+                "name": nombre
+            };
+            const url = "http://127.0.0.1:5002/courses";
+            const options = {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": document.cookie
+                },
+                body: JSON.stringify(data),
+            };
+
+            //desactivar boton y input
+            document.getElementById("nombre").disabled = true;
+            document.getElementById("btn-create-course").disabled = true;
+            
+
+            fetch(url, options)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    if (data.success) {
+                        document.getElementById("create-course-success").innerHTML = "Curso creado exitosamente";
+                        setTimeout(() => {
+                            floatingWindow.style.display = "none";
+                            document.getElementById("nombre").disabled = false;
+                            document.getElementById("nombre").value = "";
+                            document.getElementById("btn-create-course").disabled = false;
+                            document.getElementById("create-course-success").innerHTML = "";
+                        }, 2000);
+                    } else {
+                        alert("Error al crear curso");
+                    }
+                })
+                .catch(error => {
+                    console.log(error);
+                });
+        });
+
+
+        //crear tarea
+
+        const btnCreateHomework = document.getElementById("btn-create-homework");
+
+        btnCreateHomework.addEventListener("click", (e) => {
+            e.preventDefault();
+
+            const nombre = document.getElementById("nombre-tarea").value;
+            const curso = document.getElementById("curso-select").value;
+            const descripcion = document.getElementById("descripcion").value;
+            const fecha = document.getElementById("fecha").value;
+            const hora = document.getElementById("hora").value;
+
+            const data = {
+                "name": nombre,
+                "indications": descripcion,
+                "deadline": fecha + " " + hora + ":00" //tiene formato YYYY-MM-DD HH:MM:SS
+            };
+
+            const url = "http://127.0.0.1:5001/courses/" + curso + "/homeworks";
+
+            const options = {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": document.cookie
+                },
+                body: JSON.stringify(data),
+            };
+
+            //desactivar boton y input
+            document.getElementById("nombre-tarea").disabled = true;
+            document.getElementById("descripcion").disabled = true;
+            document.getElementById("fecha").disabled = true;
+            document.getElementById("hora").disabled = true;
+            document.getElementById("btn-create-homework").disabled = true;
+
+            fetch(url, options)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    if (data.success) {
+                        document.getElementById("create-homework-success").innerHTML = "Tarea creada exitosamente";
+                        setTimeout(() => {
+                            floatingWindow.style.display = "none";
+                            document.getElementById("nombre-tarea").disabled = false;
+                            document.getElementById("nombre-tarea").value = "";
+                            document.getElementById("descripcion").disabled = false;
+                            document.getElementById("descripcion").value = "";
+                            document.getElementById("fecha").disabled = false;
+                            document.getElementById("fecha").value = "";
+                            document.getElementById("hora").disabled = false;
+                            document.getElementById("hora").value = "";
+                            document.getElementById("btn-create-homework").disabled = false;
+                            document.getElementById("create-homework-success").innerHTML = "";
+                        }, 2000);
+                    } else {
+                        alert("Error al crear tarea");
+                        document.getElementById("nombre-tarea").disabled = false;
+                        document.getElementById("nombre-tarea").value = "";
+                        document.getElementById("descripcion").disabled = false;
+                        document.getElementById("descripcion").value = "";
+                        document.getElementById("fecha").disabled = false;
+                        document.getElementById("fecha").value = "";
+                        document.getElementById("hora").disabled = false;
+                        document.getElementById("hora").value = "";
+                        document.getElementById("btn-create-homework").disabled = false;
+                        document.getElementById("create-homework-success").innerHTML = "";
+                    }
+                })
+                .catch(error => {
+                    console.log(error);
+                });
+        });
+        
+
+        //crear alumno
+        const btnCreateStudent = document.getElementById("create-student");
+
+        btnCreateStudent.addEventListener("click", (e) => {
+            e.preventDefault();
+
+            const nombre = document.getElementById("nombre-student").value;
+            const DNI = document.getElementById("DNI-student").value;
+            const email = document.getElementById("email-student").value;
+
+            const data = {
+                "name": nombre,
+                "dni": DNI,
+                "email": email
+            };
+
+            const url = "http://127.0.0.1:5000/students";
+
+            const options = {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": document.cookie
+                },
+                body: JSON.stringify(data),
+            };
+
+            //desactivar boton y input
+            document.getElementById("nombre-student").disabled = true;
+            document.getElementById("DNI-student").disabled = true;
+            document.getElementById("email-student").disabled = true;
+            document.getElementById("create-student").disabled = true;
+
+            fetch(url, options)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    if (data.success) {
+                        document.getElementById("create-student-success").innerHTML = "Alumno creado exitosamente";
+                        setTimeout(() => {
+                            floatingWindow.style.display = "none";
+                            document.getElementById("nombre-student").disabled = false;
+                            document.getElementById("nombre-student").value = "";
+                            document.getElementById("DNI-student").disabled = false;
+                            document.getElementById("DNI-student").value = "";
+                            document.getElementById("email-student").disabled = false;
+                            document.getElementById("email-student").value = "";
+                            document.getElementById("create-student").disabled = false;
+                            document.getElementById("create-student-success").innerHTML = "";
+                        }, 2000);
+                    } else {
+                        alert("Error al crear alumno");
+                        setTimeout(() => {
+                            floatingWindow.style.display = "none";
+                            document.getElementById("nombre-student").disabled = false;
+                            document.getElementById("nombre-student").value = "";
+                            document.getElementById("DNI-student").disabled = false;
+                            document.getElementById("DNI-student").value = "";
+                            document.getElementById("email-student").disabled = false;
+                            document.getElementById("email-student").value = "";
+                            document.getElementById("create-student").disabled = false;
+                            document.getElementById("create-student-success").innerHTML = "";
+                        }, 2000);
+                    }
+                })
+                .catch(error => {
+                    console.log(error);
+                    setTimeout(() => {
+                        floatingWindow.style.display = "none";
+                        document.getElementById("nombre-student").disabled = false;
+                        document.getElementById("nombre-student").value = "";
+                        document.getElementById("DNI-student").disabled = false;
+                        document.getElementById("DNI-student").value = "";
+                        document.getElementById("email-student").disabled = false;
+                        document.getElementById("email-student").value = "";
+                        document.getElementById("create-student").disabled = false;
+                        document.getElementById("create-student-success").innerHTML = "";
+                    }, 2000);
+                });
+        });
+
+    </script>
 
     <script src="scripts/loadingLink.js"></script>
 </body>

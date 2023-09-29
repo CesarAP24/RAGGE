@@ -37,7 +37,7 @@ def create_app(test_config=None):
 
     with app.app_context():
         setup_db(app, test_config['database_path'] if test_config else None)
-        CORS(app, origins=['http://localhost:8081'], supports_credentials=True)
+        CORS(app, origins="*", supports_credentials=True)
 
     @app.after_request
     def after_request(response):

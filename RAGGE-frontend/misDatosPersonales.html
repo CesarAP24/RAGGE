@@ -6,14 +6,13 @@
     <link rel="stylesheet" href="css/content.css">
     <link rel="stylesheet" href="css/loading.css">
     <style>
-        .left{
-            padding: 50px 100px;
-        }
+
         .top-data{
             display: flex;
             flex-direction: row;
             justify-content: left;
             align-items: center;
+            padding: 20px;
             margin-bottom: 50px;
         }
 
@@ -32,6 +31,7 @@
         }
 
         .bottom-data{
+            padding: 20px;
             display: flex;
             flex-direction: column;
         }
@@ -86,27 +86,31 @@
 
     <section class="main">
         <div class="left">
-            <div class="top-data">
-                <div class="photo">
-                    <img src="https://via.placeholder.com/300" alt="foto">
-                </div>
-                <div class="main-data">
-                    <h2>Mi Nombre</h2>
-                    <p>Estudiante</p>
-                </div>
-            </div>
+            <div class="contenido">
+                <h2>Datos Personales</h2>
 
-            <div class="bottom-data">
-                <div class="cursos">
-                    <h3>Cursos:</h3>
-                    <ul>
-                        <li>Curso 1</li>
-                        <li>Curso 2</li>
-                        <li>Curso 3</li>
-                    </ul>
+                <div class="top-data">
+                    <div class="photo">
+                        <img src="https://via.placeholder.com/300" alt="foto">
+                    </div>
+                    <div class="main-data">
+                        <h2>Mi Nombre</h2>
+                        <p>Profesor</p>
+                    </div>
                 </div>
-                <div class="contacto">
-                    <p><strong>Correo de contacto: </strong> correo@gmail.com</p>
+
+                <div class="bottom-data">
+                    <div class="cursos">
+                        <h4>Cursos:</h4>
+                        <ul>
+                            <li>Curso 1</li>
+                            <li>Curso 2</li>
+                            <li>Curso 3</li>
+                        </ul>
+                    </div>
+                    <div class="contacto">
+                        <p><strong>Correo de contacto: </strong> correo@gmail.com</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -114,13 +118,12 @@
         <div class="right">
             <h3>Menu</h3>
             <div class="navbar">
+                
                 <!-- contenido: panel, mis cursos, mis alumnos, mis datos personales, mis tareas, mis notas, soporte -->
                 <a class="navbar-item" href="main.html" profesor="true" alumno="true">Panel</a>
                 <a class="navbar-item" href="misCursos.html" profesor="true" alumno="true">Mis cursos</a>
                 <a class="navbar-item" href="misAlumnos.html" profesor="true">Mis alumnos</a>
                 <a class="navbar-item navbar-item-selected" href="misDatosPersonales.html" profesor="true" alumno="true">Mis datos personales</a>
-                <a class="navbar-item" href="misTareas.html" alumno="true">Mis tareas</a>
-                <a class="navbar-item" href="misNotas.html" alumno="true">Mis notas</a>
                 <a class="navbar-item" href="soporte.html" profesor="true">Soporte</a>
             </div>
         </div>
