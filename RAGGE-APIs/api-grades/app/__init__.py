@@ -184,7 +184,6 @@ def create_app(config=None):
                 student = User.query.get(score['id_student'])
                 score['student_name'] = student.name
                 
-            
 
             return jsonify({'success': True, 'scores': scores}), code
         except Exception as e:

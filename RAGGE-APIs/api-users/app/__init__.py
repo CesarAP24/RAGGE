@@ -3,6 +3,7 @@
 from .models import *
 from flask_cors import CORS
 from .utilities import *
+import requests
 
 from flask import (
     Flask,
@@ -26,6 +27,13 @@ import os
 from datetime import datetime
 from datetime import timedelta
 
+
+class BearerAuth(requests.auth.AuthBase):
+    def __init__(self, token):
+        self.token = token
+    def __call__(self, r):
+        r.headers["authorization"] = "Bearer " + self.token
+        return r
 
 # App
 def create_app(test_config=None):
@@ -398,16 +406,17 @@ def create_app(test_config=None):
                     list_error.append('Código de verificación incorrecto')
                 else:
                     # verificar si el codigo ya fue usado
-                    if User.query.filter_by(dni=dni).first() is not None:
+                    if User.query.filter_by(dni=dni).first():
                         returned_code = 400
                         list_error.append('El DNI ya está registrado')
-                    elif User.query.filter_by(email=email).first() is not None:
+                    if User.query.filter_by(email=email).first():
                         returned_code = 400
                         list_error.append('El correo ya está registrado')
-                    elif Teacher.query.filter_by(phone_number=phone_number).first() is not None:
+                    if Teacher.query.filter_by(phone_number=phone_number).first():
                         returned_code = 400
                         list_error.append('El número de teléfono ya está registrado')
-                    else:
+                    
+                    if returned_code == 201:
                         if codigo.used:
                             returned_code = 400
                             list_error.append('Código de verificación incorrecto')
@@ -550,6 +559,66 @@ def create_app(test_config=None):
             abort(returned_code)
         else:
             return jsonify({'success': True, 'students': students_list}), returned_code
+
+
+    @app.route('/codes', methods=['POST'])
+    def send_code():
+        try:
+            try:
+                data = request.json
+                email = data['email']
+            except:
+                return jsonify({'success': False, 'message': 'Debe enviar un JSON con "email'}), 500
+        
+        
+            code = str(generate_random_code())
+            prev_code = Code.query.filter_by(code=code).first()
+
+            if prev_code:
+                prev_code.used = False
+            else:
+                new_code = Code(code=code, used=False)
+                db.session.add(new_code)
+            
+            db.session.commit()
+
+            # enviar correo
+
+            BASE_URL = "https://api.sendgrid.com/v3/mail/send"
+            json = {
+                "personalizations": [
+                    {
+                        "to": 
+                        [{
+                            "email": email
+                        }],
+                        "dynamic_template_data":
+                        {
+                            "code": code
+                        }
+                    }
+                ],
+                "from": {
+                    "email": "cesar.perales@utec.edu.pe"
+                },
+                "template_id": "d-575691d815d64971b3ec02377ef9e712",
+            }
+
+            headers = { #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
+                "Content-Type": "application/json"
+            }
+
+            response = requests.post(BASE_URL, json=json, headers=headers, auth=BearerAuth('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'))
+            
+            if response.status_code != 202:
+                return jsonify({'success': False, 'message': 'Erro al enviar, intente más tarde'}), 500
+
+            return jsonify({'success': True, 'message': 'Código enviado exitosamente'}), 201
+
+        except Exception as e:
+            print(sys.exc_info())
+            db.session.rollback()
+            return jsonify({'success': False, 'message': 'Error al enviar el código'}), 500
 
     # HANDLE ERROR ---------------------------------------------------------
 

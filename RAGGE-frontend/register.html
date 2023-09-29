@@ -44,6 +44,38 @@
         width: 95%;
     }
 
+    #ver-code{
+        width: 40%;
+        font-size: 4px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #send-code {
+        font-size: 10px;
+        width: 80%;
+        height: 100%;
+        background-color: #1E90FF;
+        color: white;
+        border: none;
+        margin: 0;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    #code-ver{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    #code{
+        margin: 0;
+    }
+
+
     </style>
 </head>
 
@@ -71,9 +103,10 @@
 
                 <div id="reorder-2">
                     <div class="margin-10">
-                        <label for="code" >Código de Profesor*:</label>
-                        <input type="text" id="code" name="code" placeholder="ingresa tu código" required>   
+                        <label for="phone_number" >Número de telefono*:</label>
+                        <input type="text" id="phone_numer" name="phone_number" placeholder="Ingresa tu número de telefono" required>   
                     </div>
+
                     <div class="margin-10">
                         <label for="correo">Correo de contacto*:</label>
                         <input type="email" id="correo" name="email" placeholder="ingresa tu correo" required>
@@ -82,8 +115,17 @@
 
                 <div id="reorder-3">
                     <div class="margin-10">
-                        <label for="phone_number" >Número de telefono*:</label>
-                        <input type="text" id="phone_numer" name="phone_number" placeholder="Ingresa tu número de telefono" required>   
+                        <label for="code" >Código de Verificación*:</label>
+                        <div  id="code-ver">
+                            <div>
+                                <input type="text" id="code" name="code" placeholder="ingresa tu código" required>
+                            </div>
+                            <div id="ver-code">
+                                <button id="send-code">
+                                    Enviar
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -95,7 +137,6 @@
     </div>
 
     <script>
-        
         const url = "http://localhost:5000/register";
 
         let boton = document.getElementById("btn");
@@ -132,6 +173,41 @@
 
             }).catch(function(error){
                 //codigo para cuando ocurra un error
+            });
+        });
+
+
+        document.getElementById("send-code").addEventListener("click", function(e){
+            e.preventDefault();
+            let data = {
+                "email": document.getElementById("correo").value
+            };
+
+            if (data.email == ""){
+                document.getElementById("correo").focus(); 
+                return;
+            }
+
+            fetch("http://127.0.0.1:5000/codes", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            }).then(function(response){
+                return response.json();
+            }).then(function(data){
+                if (data.success == false){
+                    alert("Error al enviar el código de verificación");
+                    return;
+                } else {
+                    //focus en el input del codigo
+                    alert("Se ha enviado el código de verificación a " + document.getElementById("correo").value);
+                    document.getElementById("code").focus();
+                }
+                console.log(data);
+            }).catch(function(error){
+                console.log(error);
             });
         });
     </script>
