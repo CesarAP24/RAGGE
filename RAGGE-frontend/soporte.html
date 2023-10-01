@@ -6,12 +6,13 @@
     <link rel="stylesheet" href="css/content.css">
     <link rel="stylesheet" href="css/loading.css">
     <style>
-        .top-data ul{
+        .top-data ul {
             display: flex;
             flex-direction: row;
-            justify-content: left;
+            justify-content: center;
             align-items: center;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
         .top-data ul li{
@@ -22,11 +23,36 @@
         }
 
         .top-data ul li img{
-            width: 120px;
-            height: 120px;
+            width: 100px;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.25);
             object-fit: cover;
-            border-radius: 100%;
-            overflow: hidden;
+            margin-bottom: 20px;
+            transition: 0.5s ease;
+        }
+
+        .top-data ul li p{
+            margin-bottom: 20px;
+        }
+
+        .top-data ul li img:hover{
+            scale: 1.1;
+            transition: 0.2s ease;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.5);
+        }
+
+        a{
+            transition: 0.5s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: black;
+            justify-content: center;
+        }
+
+        a:hover{
+            text-decoration: underline;
+            color: #1e90ff;
         }
 
         .bottom-data ul{
@@ -39,12 +65,15 @@
             margin-bottom: 10px;
         }
 
+        
+
     </style>
 
 </head>
 
 
 <body>
+    
     <div id="pantalla-carga" class="pantalla-carga">
         <div class="spinner"></div>
     </div>
@@ -64,16 +93,25 @@
                     <h2>Guias para el maestro</h2>
                     <ul>
                         <li>
-                            <img src="https://via.placeholder.com/100" alt="video">
-                            <a href="https://www.youtube.com/watch?v=6O3u1hveETg" target="_blank">Como crear un curso</a>
+                            <a href="guias/crear-tarea-guia.pdf" target="_blank">
+                                <img src="images/crear-tarea.png" alt="video">
+                                <p>Como crear una Tarea</p>
+                                <p>PDF</p>
+                            </a>
                         </li>
                         <li>
-                            <img src="https://via.placeholder.com/100" alt="video">
-                            <a href="https://www.youtube.com/watch?v=6O3u1hveETg" target="_blank">Como crear una tarea</a>
+                            <a href="guias/crear-curso-guia.pdf" target="_blank">
+                                <img src="images/crear-curso.png" alt="video">
+                                <p>Como crear un Curso</p>
+                                <p>PDF</p>
+                            </a>
                         </li>
                         <li>
-                            <img src="https://via.placeholder.com/100" alt="video">
-                            <a href="https://www.youtube.com/watch?v=6O3u1hveETg" target="_blank">Como crear una nota</a>
+                            <a href="guias/buscar-alumnos-guia.pdf" target="_blank">
+                                <img src="images/buscar-alumnos.png" alt="video">
+                                <p>Como buscar Alumnos</p>
+                                <p>PDF</p>
+                            </a>
                         </li>
                     </ul>
                 </div>

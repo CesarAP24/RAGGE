@@ -34,6 +34,14 @@
             border: 1px solid #1e90ff;
         }
 
+        tr a{
+            color: #1e90ff;
+        }
+
+        tr a:hover{
+            text-decoration: underline;
+        }
+
     </style>
 </head>
 
@@ -193,7 +201,7 @@
                             <tr>
                                 <td>${student.name}</td>
                                 <td>${student.dni}</td>
-                                <td>${student.email}</td>
+                                <td><a href="mailto:${student.email}">${student.email}</a></td>
                             </tr>
                         `;
                     });
