@@ -132,12 +132,112 @@
         .lista-alumnos-notas{
             width: 100%;
             background: #fff;
-            padding: 20px;
+            padding: 10px;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            display: flex;
+            transition: 0.5s ease;
+            margin-top: 0;
+            flex-direction: column;
+        }
+
+        .notas-container{
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            animation: desplegar 0.5s ease;
+        }
+
+        @keyframes desplegar{
+            0%{
+                opacity: 0;
+                transform: scaleY(0);
+                margin-top: -100px;
+            }
+            100%{
+                opacity: 1;
+                transform: scaleY(1);
+                margin-top: 0;
+            }
+        }
+
+        .hide-despliegue{
+            animation: hide-despliegue 0.5s ease;
+        }
+
+        @keyframes hide-despliegue{
+            0%{
+                opacity: 1;
+                transform: scaleY(1);
+                margin-top: 0;
+            }
+            100%{
+                opacity: 0;
+                transform: scaleY(0);
+                margin-top: -100px;
+            }
+        }
+
+
+        /*input alumno tiene un encuadre de sombra*/
+        .input-alumno{
+            width: 100%;
+            background: #fff;
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             margin-bottom: 10px;
+            margin-top: 10px;
+        }
+
+        .input-alumno div{
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-alumno label{
+            margin: 0;
+            font-size: 13px;
+        }
+
+        .input-alumno div select{
+            width: 56%;
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #1e8fff28;
+            font-size: 13px;
+        }
+
+        .input-alumno div button,
+        .input-alumno button
+        {
+            flex-grow: 1;
+            margin: 0 0 0 10px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            background: #1e8fff;
+            justify-content: center;
+            border: 1px solid rgba(0,0,0,0);
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .input-alumno div input{
+            flex-grow: 1;
+            width: 5px;
+            margin-left: 14px;
+            padding: 4px;
+            border: 1px solid #1e8fff28;
+            border-radius: 5px;
         }
 
     </style>
@@ -147,35 +247,28 @@
     <!--floating windoS-->
     <div class="floating-window" style="display: none" id="floating-window"> <!--este div va a contener a muchas tarjetas     style="display: none" -->
         <!--plantilla-->
-        <!--
         <div class="floating-window-cuourse" id = "id-curso-1"> 
             <div class="FW-course-header"> 
                 <div class="text"> 
-                    <h3>--Nombre del curso--</h3>
-                    <h3>Tareas del curso</h3>
+                    <h3 id="course-name">--Nombre del curso--</h3>
+                    <br>
+                    <h5>Tareas del curso</h5>
                 </div>
                 <div class="cross"><p class="cross-a">x</p></div>
             </div>
-            <div class="FW-course-content"> 
-                <div class="FW-homework"> 
-                    <div class="FW-homework-target">
-                        <div class="design" id="target1">
-                            <div class="design-top">
-                                <p>Nombre de la tarea 1</p>
-                                <button class = "btn btn-desplegar"> v</button>
-                            </div>
-                            <div class="lista-alumnos-notas">
-                                <div class="lista-alumnos-notas-elemento">
-                                    <div class="elemnto-left"> Nombre de alumno 1 </div>
-                                    <div class="elemento-right"> Nota: 10 </div>
-                                </div>
-                            </div>
-                        </div>
+            <div class="FW-course-content" id="homeworks-container-list">
+            </div>
+            <div class="add-alumno-container">
+                <div class="input-alumno" id="input-alumno-general">
+                    <label>Añadir alumno al curso:</label>
+                    <div>
+                        <select class="alumno-select" id="alumno-select-general"></select>
+                        <button class="btn" id="btn-agregar-alumno-general" data-id="id-curso">Agregar al curso</button>
                     </div>
                 </div>
             </div>
         </div>
-        -->
+       
     </div>
 
     <div id="pantalla-carga" class="pantalla-carga">
@@ -220,8 +313,23 @@
     <script src="scripts/loadingLink.js"></script>
 
     <script>
+        const cross = document.getElementsByClassName("cross-a");
+
+        //asignar funcion a las x
+        for (let i = 0; i < cross.length; i++) {
+            cross[i].addEventListener("click", () => {
+                floatingWindowsContainer.classList.add("floating-window-hide");
+                setTimeout(() => {
+                    floatingWindowsContainer.style.display = "none";
+                    floatingWindowsContainer.classList.remove("floating-window-hide");
+                }, 500);
+            });
+        }
+    </script>
+
+    <script>
         //cargar cursos
-        const url = "http://127.0.0.1:5002/teachers/" + getCookie("cookie") + "/courses";
+        let url = "http://127.0.0.1:5002/teachers/" + getCookie("cookie") + "/courses";
         const cursosContainer = document.getElementById("cursos-container");
         console.log(url);
         
@@ -232,6 +340,80 @@
                 "Authorization": "Bearer " + getCookie("cookie")
             }
         }
+
+        let alumnos = [];
+
+        //obtener alumnos
+        fetch("http://127.0.0.1:5000/students", options)
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            if (data.success){
+                alumnos = data.students;
+            }
+            //ordena los alumnos por nombre
+            alumnos.sort((a, b) => {
+                if (a.name > b.name){
+                    return 1;
+                } else if (a.name < b.name){
+                    return -1;
+                } else {
+                    return 0;
+                }
+            });
+
+            console.log(alumnos);
+
+            //agregar al alumno-select-general
+
+            document.getElementById("alumno-select-general").innerHTML = "";
+
+            for (let i=0; i<alumnos.length; i++){
+                document.getElementById("alumno-select-general").innerHTML += `
+                <option value="${ alumnos[i].id }">${ alumnos[i].dni } | ${ alumnos[i].name }</option> 
+                `;
+            }
+        });
+
+
+
+        //function post student to course
+        function postStudentToCourse(id_student, id_course){
+            let url = "http://127.0.0.1:5002/courses/" + id_course + "/students";
+            let options1 = {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + getCookie("cookie")
+                },
+                body: JSON.stringify({
+                    "id_student": id_student
+                })
+            }
+            fetch(url, options1)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                if (data.success){
+                    //mostrar mensaje de exito
+                    alert("Alumno agregado al curso");
+                } else {
+                    //mostrar mensaje de error
+                    alert("Error al agregar alumno al curso");
+                }
+            });
+        }
+
+        document.getElementById("btn-agregar-alumno-general").addEventListener("click", () => {
+            let id_student = document.getElementById("alumno-select-general").value;
+            let id_course = document.getElementById("btn-agregar-alumno-general").getAttribute("data-id");
+            postStudentToCourse(id_student, id_course);
+        });
+
+
+        
+
+        //cargar cursos ----------------------------------------------------------------------------------
 
         fetch(url, options)
         .then(response => response.json())
@@ -253,160 +435,244 @@
                     let button = document.createElement("button");
                     button.setAttribute("class", "btn");
                     button.setAttribute("data-id", data.courses[i].id_course);
+                    button.setAttribute("data-name", data.courses[i].course_name);
                     button.innerHTML = ">";
+                    button.addEventListener("click", (event) => {
+                        showWindow(event);
+                        loadHomeworks(event.target.getAttribute("data-id"));
+                    });
 
                     tarjetaContenido.appendChild(h4);
                     tarjetaContenido.appendChild(button);
                     tarjeta.appendChild(tarjetaContenido);
                     cursosContainer.appendChild(tarjeta);
                 }
-            }
 
-        });
-
-        //cargar tareas de cada curso
-        const floatingWindowsContainer = document.getElementById("floating-window");
-
-        console.log("holi");
-
-        //vamos a cargar las tareas por cada curso
-        for (let i=0; i<cursosContainer.children.length; i++){
-            //let btn_curso = cursosContainer.children[i].children[0].children[1];
-            //btn_curso.addEventListener("click", function(){
-
-            let FWCourse = document.createElement("div"); //crea una ventana emergente para cada curso
-            FWCourse.setAttribute("class", "floating-window-cuourse");  
-            FWCourse.setAttribute("style", "display: none");      
-
-            let idCurso = cursosContainer.children[i].children[0].children[1].getAttribute("data-id");
-            console.log(idCurso);
-
-            const url1 = "http://127.0.0.1:5001/courses" + idCurso + "/homeworks";
-
-            let options1 = {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + getCookie("cookie")
+                if (data.courses.length == 0){
+                    cursosContainer.innerHTML = "<p>No hay cursos</p>";
                 }
             }
 
-            fetch(url1, options1) //get de las tareas de un curso
+        });
+    
+        console.log("holi amor");
+
+
+
+        //cargar tareas ----------------------------------------------------------------------------------
+
+        function loadHomeworks(id_course){
+            let url = "http://127.0.0.1:5001/courses/" + id_course + "/homeworks";
+            const homeworksContainer = document.getElementById("homeworks-container-list");
+            
+            //vaciar lista de tareas
+            homeworksContainer.innerHTML = "cargando tareas...";
+
+            fetch(url, options)
             .then(response => response.json())
             .then(data => {
                 console.log(data);
+                homeworksContainer.innerHTML = "";
 
-                if(data.success){
-                    //crear header
-                    let FWCourseHeader = document.createElement("div");
-                    FWCourseHeader.setAttribute("class", "FW-course-header");
+                if (data.success){
+                    if (data.homeworks){
+                        for (let i=0; i<data.homeworks.length; i++){
+                            homeworksContainer.innerHTML += `
+                            <div class="design">
+                                <div class="design-top">
+                                    <p>${ data.homeworks[i].name }</p>
+                                    <button class="btn btn-desplegar" data-id="${ data.homeworks[i].id }" id="${ data.homeworks[i].id }">v</button>
+                                </div>
+                                <div class="notas-container" data-id="${ data.homeworks[i].id }" style="display: none">
+                                    <div class="lista-alumnos-notas" data-id="${ data.homeworks[i].id }" id = "lista-alumnos-notas-${ data.homeworks[i].id }">
+                                        <div class="lista-alumnos-notas-elemento">
+                                            <div class="elemnto-left"> Nombre de alumno 1 </div>
+                                            <div class="elemento-right"> Nota: 10 </div>
+                                        </div>
+                                    </div>
+                                    <div class="input-alumno">
+                                        <label>Calificar alumno:</label>
+                                        <div>
+                                            <select class="alumno-select" id="alumno-select-${ data.homeworks[i].id }"></select>
+                                            <input type="number" placeholder="Nota" id="nota-alumno-${ data.homeworks[i].id }" min="0" max="20">
+                                        </div>
+                                        <button class="btn" id="btn-agregar-alumno-${ data.homeworks[i].id }">Calificar</button>
+                                    </div>
+                                </div>
+                            </div>
+                            `;
+                            document.getElementById("lista-alumnos-notas-" + data.homeworks[i].id).innerHTML = "";
 
-                    let text = document.createElement("div");
-                    text.setAttribute("class", "text");
+                            fetch("http://127.0.0.1:5001/courses/" + id_course + "/homeworks/" + data.homeworks[i].id + "/scores", options)
+                            .then(response => response.json())
+                            .then(data2 => {
+                                console.log(data2);
 
-                    let h3 = document.createElement("h3");
-                    h3.innerHTML = data.course_name;
+                                //ordenar según el value
+                                data2.scores.sort((a, b) => {
+                                    if (a.value < b.value){
+                                        return 1;
+                                    } else if (a.value > b.value){
+                                        return -1;
+                                    } else {
+                                        return 0;
+                                    }
+                                });
 
-                    let h3_2 = document.createElement("h3");
-                    h3_2.innerHTML = "Tareas del curso";
+                                console.log(data2.scores);
 
-                    text.appendChild(h3);
-                    text.appendChild(h3_2);
+                                if (data2.success){
+                                    if (data2.scores.length > 0){
+                                        for (let j=0; j<data2.scores.length; j++){
+                                            //evitar repetir alumnos en el html
+                                            let repetido = false;
+                                            //lista de estudiantes en el html
+                                            let listaAlumnos = document.getElementsByClassName("lista-alumnos-notas-elemento");
+                                            for (let k=0; k<listaAlumnos.length; k++){
+                                                console.log(listaAlumnos[k].children[0].innerHTML == data2.scores[j].student_name);
+                                                if (listaAlumnos[k].children[0].innerHTML == data2.scores[j].student_name){
+                                                    repetido = true;
+                                                }
+                                            }
 
-                    let cross = document.createElement("div");
-                    cross.setAttribute("class", "cross");
-
-                    let p = document.createElement("p");
-                    p.setAttribute("class", "cross-a");
-                    p.innerHTML = "x";
-
-                    cross.appendChild(p);
-
-                    FWCourseHeader.appendChild(text);
-                    FWCourseHeader.appendChild(cross);
-
-                    //crear contenido
-                    let FWCourseContent = document.createElement("div");
-                    FWCourseContent.setAttribute("class", "FW-course-content");
-
-                    let FWHomework = document.createElement("div");
-                    FWHomework.setAttribute("class", "FW-homework");
-
-                    let FWHomeworkTarget = document.createElement("div");
-                    FWHomeworkTarget.setAttribute("class", "FW-homework-target");
-
-                    for (let j=0; j<data.homeworks.length; j++){
-                        let design = document.createElement("div");
-                        design.setAttribute("class", "design");
-                        design.setAttribute("id", "target" + j); //mmm
-
-                        let designTop = document.createElement("div");
-                        designTop.setAttribute("class", "design-top");
-
-                        let p = document.createElement("p");
-                        p.innerHTML = data.homeworks[j].homework_name;
-
-                        let button = document.createElement("button");
-                        button.setAttribute("class", "btn btn-desplegar");
-                        button.innerHTML = "v";
-
-                        designTop.appendChild(p);
-                        designTop.appendChild(button);
-
-                        let listaAlumnosNotas = document.createElement("div");
-                        listaAlumnosNotas.setAttribute("class", "lista-alumnos-notas");
-
-                        const url2 = "http://127.0.0.1:5001/courses/" + idCurso + "/homeworks/" + data.homeworks[j].id_homework + "/scores";
-
-                        let options1 = {
-                            method: "GET",
-                            headers: {
-                                "Content-Type": "application/json",
-                                "Authorization": "Bearer " + getCookie("cookie")
-                            }
+                                            if (!repetido){
+                                                document.getElementById("lista-alumnos-notas-" + data.homeworks[i].id).innerHTML += `
+                                                <div class="lista-alumnos-notas-elemento">
+                                                    <div class="elemnto-left">${ data2.scores[j].student_name }</div>
+                                                    <div class="elemento-right"> Nota: ${ data2.scores[j].value } </div>
+                                                </div>
+                                                `;
+                                            }   
+                                        }
+                                    } else {
+                                        document.getElementById("lista-alumnos-notas-" + data.homeworks[i].id).innerHTML += "<p>No hay notas</p>";
+                                    }
+                                }
+                            });
                         }
 
-                        //hacer el fetch
-                        fetch(url2, options1)
+                        //lenar el select
+                        fetch("http://127.0.0.1:5002/courses/" + id_course + "/students", options)
                         .then(response => response.json())
-                        .then(data => {
-                            console.log(data2);
-
-                            if (data2.success){
-                                for (let k=0; k<data2.homeworks[j].students.length; k++){
-                                    let listaAlumnosNotasElemento = document.createElement("div");
-                                    listaAlumnosNotasElemento.setAttribute("class", "lista-alumnos-notas-elemento");
-
-                                    let elementoLeft = document.createElement("div");
-                                    elementoLeft.setAttribute("class", "elemento-left");
-                                    elementoLeft.innerHTML = data2.homeworks[j].students[k].student_name;
-
-                                    let elementoRight = document.createElement("div");
-                                    elementoRight.setAttribute("class", "elemento-right");
-                                    elementoRight.innerHTML = "Nota: " + data2.homeworks[j].students[k].score;
-
-                                    listaAlumnosNotasElemento.appendChild(elementoLeft);
-                                    listaAlumnosNotasElemento.appendChild(elementoRight);
-                                    listaAlumnosNotas.appendChild(listaAlumnosNotasElemento);
+                        .then(data3 => {
+                            console.log("alumnos curso:", data3);
+                            if (data3.success){
+                                if (data3.students.length > 0){
+                                    for (let j=0; j<data3.students.length; j++){
+                                        let selects = document.getElementsByClassName("alumno-select");
+                                        for (let k=0; k<selects.length; k++){
+                                            selects[k].innerHTML += `
+                                            <option value="${ data3.students[j].id }">${ data3.students[j].dni } | ${ data3.students[j].name }</option>
+                                            `;
+                                        }
+                                    }
                                 }
                             }
                         });
 
-                        design.appendChild(designTop);
-                        design.appendChild(listaAlumnosNotas);
-                        FWHomeworkTarget.appendChild(design);
+                        for (let i=0; i<data.homeworks.length; i++){
+                            //asignar funcion a los botones de desplegar
+                            document.getElementById(data.homeworks[i].id).addEventListener("click", (event) => {
+                                showGrades(event);
+                            });
+
+                            console.log(document.getElementById("btn-agregar-alumno-" + data.homeworks[i].id));
+                            //asignar funcion a los botones de agregar nota
+                            document.getElementById("btn-agregar-alumno-" + data.homeworks[i].id).addEventListener("click", () => {
+                                let id_student = document.getElementById("alumno-select-" + data.homeworks[i].id).value;
+                                let score = document.getElementById("nota-alumno-" + data.homeworks[i].id).value;
+                                let id_homework = data.homeworks[i].id;
+                                let id_course = document.getElementById("floating-window").getAttribute("data-id");
+                                console.log(id_student, score, id_homework, id_course);
+                                
+                                let url_post = "http://127.0.0.1:5001/courses/" + id_course + "/homeworks/" + id_homework + "/scores";
+                                let body = {
+                                    "id_student": id_student,
+                                    "value": score
+                                }
+
+                                let options3 = {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "Authorization": "Bearer " + getCookie("cookie")
+                                    },
+                                    body: JSON.stringify(body)
+                                }
+
+                                fetch(url_post, options3)
+                                .then(response => response.json())
+                                .then(data4 => {
+                                    console.log(data4);
+                                    if (data4.success){
+                                        //mostrar mensaje de exito
+                                        alert("Nota agregada");
+                                    } else {
+                                        //mostrar mensaje de error
+                                        alert("Error al agregar nota");
+                                    }
+                                });
+                            });
+                        }
+                    } else {
+                        console.log("no hay tareas");
+                        //mostrar mensajes de no hay tareas
+                        homeworksContainer.innerHTML = "<p>No hay tareas</p>";
                     }
-                    FWCourseContent.appendChild(FWHomeworkTarget);
-                    FWCourse.appendChild(FWCourseHeader);
-                    FWCourse.appendChild(FWCourseContent);
+                } else {
+                    console.log("error");
+                    //mostrar mensaje de error
+                    homeworksContainer.innerHTML = "<p>No se encontraron tareas</p>";
                 }
+
             });
-        //}
-            floatingWindowsContainer.appendChild(FWCourse);
+
         }
 
-        //el id course es el id del boton
 
+
+
+        const floatingWindowsContainer = document.getElementById("floating-window");
+        //show window fnction
+        function showWindow(event){
+            floatingWindowsContainer.style.display = "flex";
+            //data-id del botón actual
+            const id = event.target.getAttribute("data-id");
+            const name = event.target.getAttribute("data-name");
+            floatingWindowsContainer.setAttribute("data-id", event.target.getAttribute("data-id"));
+
+            //asignar name
+            document.getElementById("course-name").innerHTML = name;
+            
+            //asignar data-id
+            document.getElementById("btn-agregar-alumno-general").setAttribute("data-id", id);
+        }
+
+        //funcion para mostrar notas
+        function showGrades(event){
+            let dataId = event.target.getAttribute("data-id");
+            let notasBloques = document.getElementsByClassName("notas-container");
+
+            for (let i = 0; i < notasBloques.length; i++) {
+                if (notasBloques[i].getAttribute("data-id") == dataId){
+                    if (notasBloques[i].style.display == "none"){
+                        notasBloques[i].style.display = "flex";
+                    } else {
+                        notasBloques[i].classList.add("hide-despliegue");
+                        setTimeout(() => {
+                            notasBloques[i].style.display = "none";
+                            notasBloques[i].classList.remove("hide-despliegue");
+                        }, 500);
+                    }
+                } else {
+                    notasBloques[i].classList.add("hide-despliegue");
+                    setTimeout(() => {
+                        notasBloques[i].style.display = "none";
+                        notasBloques[i].classList.remove("hide-despliegue");
+                    }, 500);
+                }
+            }            
+        }
         
 
     </script>

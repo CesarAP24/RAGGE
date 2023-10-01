@@ -24,3 +24,19 @@
         transform: scale(1);
     }
 }
+
+
+.floating-window-hide{
+    animation: floating-window-disappear .5s ease-in-out;
+}
+
+@keyframes floating-window-disappear{
+    0%{
+        opacity: 1;
+        transform: scale(1);
+    }
+    100%{
+        opacity: 0;
+        transform: scale(.5);
+    }
+}

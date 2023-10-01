@@ -131,6 +131,7 @@ def create_app(config=None):
 
     @app.route('/courses/<course_id>/homeworks', methods=['GET'])
     def get_course_homeworks(course_id):
+        print('get_course_homeworks')
         if request.headers.get('Authorization') is None:
             abort(401)
 
