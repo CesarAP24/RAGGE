@@ -107,7 +107,7 @@
             <div class="cross"><p class="cross-a">x</p></div>
             <label>Crear curso:</label>
                 <input type="text" name="name" id="nombre" placeholder="Escribir nombre del curso">
-                <p id="create-user-success" style="color: green;"></p>
+                <p id="create-course-success" style="color: green;"></p>
             <button id="btn-create-course">Crear Curso</button>
         </form>
 
@@ -148,7 +148,7 @@
       
     <div class="top-bar">
         <div class="logo">
-            <img src="https://via.placeholder.com/150" alt="logo">
+            <p id="delete-cookies">Cerrar sesión</p>
         </div>
         <div class="title">
             <h1>Institute logo</h1>
@@ -201,6 +201,8 @@
         </div>
     </section>
 
+    
+    <script src="scripts/deleteCookies.js"></script>
     <script>
         const cursoForm = document.getElementById("curso-form");
 
@@ -236,7 +238,7 @@
             alumnoForm.style.display = "none";
 
             //cargar cursos
-            let id_teacher = document.cookie.split(" ")[1];
+            let id_teacher = getCookie("cookie");
             document.getElementById("curso-select").innerHTML = "";
             const url = "http://127.0.0.1:5002/teachers/" + id_teacher + "/courses";
 
@@ -244,7 +246,7 @@
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": document.cookie
+                    "Authorization": "Bearer " + getCookie("cookie")
                 }
             })
                 .then(response => response.json())
@@ -288,7 +290,7 @@
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": document.cookie
+                    "Authorization": "Bearer " + getCookie("cookie")
                 },
                 body: JSON.stringify(data),
             };
@@ -346,7 +348,7 @@
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": document.cookie
+                    "Authorization": "Bearer " + getCookie("cookie")
                 },
                 body: JSON.stringify(data),
             };
@@ -419,7 +421,7 @@
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": document.cookie
+                    "Authorization": "Bearer " + getCookie("cookie")
                 },
                 body: JSON.stringify(data),
             };

@@ -88,7 +88,7 @@
     <div class="right login-container">
         <div class="title">
             <div class="logo">
-                <img src="https://via.placeholder.com/150" alt="logo">
+                <p id="delete-cookies">Cerrar sesión</p>
             </div>
             <h3>Institute logo</h3>
         </div>
@@ -189,7 +189,7 @@
                 //aqui va el codigo para cuando el servidor responda
                 console.log(data);
                 //los 4 primeros digi   tos del dni
-                document.cookie = "cookie " + data.cookie; 
+                document.cookie = "cookie=" + data.cookie + "; path=/";
                 let pass = data.contrasena;
                 alert("Tu contraseña es: " + pass);
 
@@ -235,6 +235,7 @@
             });
         });
     </script>
+    <script src="scripts/deleteCookies.js"></script>
 </body>
 
 </html>

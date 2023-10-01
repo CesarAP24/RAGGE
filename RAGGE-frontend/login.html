@@ -110,7 +110,8 @@
                     return;
                 }
 
-                document.cookie = "cookie " + data.cookie;
+                
+                document.cookie = "cookie=" + data.cookie + "; path=/";
                 window.location.href = "main.html";
 
             }).catch(function(error){

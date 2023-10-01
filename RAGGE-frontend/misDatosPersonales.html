@@ -77,7 +77,7 @@
     </div>
     <div class="top-bar">
         <div class="logo">
-            <img src="https://via.placeholder.com/150" alt="logo">
+            <p id="delete-cookies">Cerrar sesión</p>
         </div>
         <div class="title">
             <h1>Institute logo</h1>
@@ -90,11 +90,8 @@
                 <h2>Datos Personales</h2>
 
                 <div class="top-data">
-                    <div class="photo">
-                        <img src="https://via.placeholder.com/300" alt="foto">
-                    </div>
                     <div class="main-data">
-                        <h2>Mi Nombre</h2>
+                        <h2 id="nombre-data"></h2>
                         <p>Profesor</p>
                     </div>
                 </div>
@@ -102,14 +99,11 @@
                 <div class="bottom-data">
                     <div class="cursos">
                         <h4>Cursos:</h4>
-                        <ul>
-                            <li>Curso 1</li>
-                            <li>Curso 2</li>
-                            <li>Curso 3</li>
+                        <ul id="cursos-data">
                         </ul>
                     </div>
                     <div class="contacto">
-                        <p><strong>Correo de contacto: </strong> correo@gmail.com</p>
+                        <p id="correo-data"><strong>Correo de contacto: </strong> correo@gmail.com</p>
                     </div>
                 </div>
             </div>
@@ -129,6 +123,55 @@
         </div>
     </section>
 
+    
+    <script src="scripts/deleteCookies.js"></script>
+
     <script src="scripts/loadingLink.js"></script>
+    <script>
+        function getTeacherData(){
+            fetch('http://127.0.0.1:5000/teachers/' + getCookie("cookie"), {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': "Bearer " + getCookie("cookie")
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    alert('Error al cargar los datos');
+                } else {
+                    document.getElementById('nombre-data').innerHTML = data.teacher.name;
+                    document.getElementById('correo-data').innerHTML = '<strong>Correo de contacto: </strong>' + data.teacher.email;
+                }
+            });
+        }
+
+        function getCoursesData(){
+            const url1 = 'http://127.0.0.1:5002/teachers/' + getCookie("cookie") + '/courses';
+            fetch(url1, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + getCookie("cookie")
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    for (let i = 0; i < data.courses.length; i++) {
+                        let li = document.createElement('li');
+                        li.innerHTML = data.courses[i].course_name;
+                        document.getElementById('cursos-data').appendChild(li);
+                    }
+                } else {
+                    alert('Error al cargar los cursos');
+                }
+            });
+        }
+        
+        getTeacherData();
+        getCoursesData();
+    </script>
 </body>
 </html>

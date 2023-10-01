@@ -44,7 +44,7 @@
     </div>
     <div class="top-bar">
         <div class="logo">
-            <img src="https://via.placeholder.com/150" alt="logo">
+            <p id="delete-cookies">Cerrar sesión</p>
         </div>
         <div class="title">
             <h1>Institute logo</h1>
@@ -79,9 +79,9 @@
                             <th>email</th>
                         </tr>
                         <tr>
-                            <td>Empty</td>
-                            <td>Empty</td>
-                            <td>Empty</td>
+                            <td></td>
+                            <td>Cargando ...</td>
+                            <td></td>
                         </tr>
                     </table>
                 </div>
@@ -101,6 +101,9 @@
         </div>
     </section>
 
+    
+    <script src="scripts/deleteCookies.js"></script>
+
     <script src="scripts/loadingLink.js"></script>
     <script>
         const tabla = document.getElementById('tabla-alumnos');
@@ -110,15 +113,20 @@
         const dni = document.getElementById('dni-student');
 
 
-        let id_teacher = document.cookie.split(" ")[1];
+        let id_teacher = getCookie("cookie")
         document.getElementById("curso-student").innerHTML = "";
         const url1 = "http://127.0.0.1:5002/teachers/" + id_teacher + "/courses";
 
+        let option = document.createElement("option");
+        option.value = "";
+        option.innerHTML = "Seleccionar curso";
+        document.getElementById("curso-student").appendChild(option);
+                
         fetch(url1, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": document.cookie
+                "Authorization": "Bearer " + getCookie("cookie")
             }
         })
         .then(response => response.json())
@@ -132,7 +140,7 @@
                     document.getElementById("curso-student").appendChild(option);
                 }
             } else {
-                console.log(data.message);
+                console.log(data);
             }
         });
 
@@ -164,10 +172,12 @@
                 "method": "GET",
                 "headers": {
                     "Content-Type": "application/json",
-                    "Authorization": document.cookie
+                    "Authorization": "Bearer " + getCookie("cookie")
                 },
             })
-            .then(response => response.json())
+            .then(response => {
+                return response.json();
+            })
             .then(data => {
                 if (data.success){
                     tabla.innerHTML = `
@@ -187,10 +197,23 @@
                             </tr>
                         `;
                     });
+                } else {
+                    tabla.innerHTML = `
+                        <tr>
+                            <th>Nombre</th>
+                            <th>DNI</th>
+                            <th>email</th>
+                        </tr>
+                        <tr>
+                            <td>Empty</td>
+                            <td>Empty</td>
+                            <td>Empty</td>
+                        </tr>
+                    `;
                 }
             })
             .catch(err => {
-                alert(err);
+                alert("Error al cargar los alumnos");
             });
         }
 
@@ -198,8 +221,16 @@
         cargar();
 
         nombre.addEventListener('keyup', cargar);
-        curso.addEventListener('keyup', cargar);
         dni.addEventListener('keyup', cargar);
+        curso.addEventListener('change', cargar);
+
+        nombre.addEventListener('click', () => {
+            nombre.value = "";
+        });
+
+        dni.addEventListener('click', () => {
+            dni.value = "";
+        });
 
     </script>
 </body>

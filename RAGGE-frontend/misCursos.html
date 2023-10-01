@@ -39,7 +39,7 @@
     </div>
     <div class="top-bar">
         <div class="logo">
-            <img src="https://via.placeholder.com/150" alt="logo">
+            <p id="delete-cookies">Cerrar sesión</p>
         </div>
         <div class="title">
             <h1>Institute logo</h1>
@@ -83,6 +83,35 @@
         </div>
     </section>
 
+    
+    <script src="scripts/deleteCookies.js"></script>
+
     <script src="scripts/loadingLink.js"></script>
+    <script>
+        //cargar cursos
+        document.getElementById("curso-student").appendChild(option);
+                
+        fetch(url1, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + getCookie("cookie")
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            if (data.success) {
+                for (let i = 0; i < data.courses.length; i++) {
+                    let option = document.createElement("option");
+                    option.value = data.courses[i].id_course;
+                    option.innerHTML = data.courses[i].course_name;
+                    document.getElementById("curso-student").appendChild(option);
+                }
+            } else {
+                console.log(data);
+            }
+        });
+    </script>
 </body>
 </html>
