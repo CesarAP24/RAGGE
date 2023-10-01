@@ -531,12 +531,12 @@ def create_app(test_config=None):
                 for alumno in alumnos:
                     # si el nombre esta en el nombre
                     if nombre.lower() in alumno.name.lower():
-                        students_list.append(alumno.serialize())
+                        students_list.append(alumno)
                 alumnos = students_list
                 students_list = []
 
             if curso:
-                course = Course.query.filter_by(name=curso).first()
+                course = Course.query.filter_by(id_course=curso).first()
                 if course:
                     alumnos_curso = ATieneC.query.filter_by(
                         id_curso=course.id_course).all()
@@ -614,7 +614,7 @@ def create_app(test_config=None):
                 "Content-Type": "application/json"
             }
 
-            response = requests.post(BASE_URL, json=json, headers=headers, auth=BearerAuth('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'))
+            response = requests.post(BASE_URL, json=json, headers=headers, auth=BearerAuth('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'))
             print(response.status_code)
 
             if response.status_code != 202:

@@ -26,7 +26,7 @@
             margin-bottom: 7px;
         }
 
-        .buscador input{
+        .buscador input, .buscador select{
             width: 100%;
             padding: 3px;
             font-size: 13px;
@@ -60,98 +60,28 @@
                     <div class="row buscador-container">
                         <div class="buscador column">
                             <label for="">Nombre</label>
-                            <input type="text" name="nombre">
+                            <input type="text" name="nombre" id="nombre-student">
                         </div>
                         <div class="buscador column">
                             <label for="">Curso</label>
-                            <input type="text" name="curso">
+                            <select name="curso" id="curso-student"></select>
                         </div>
                         <div class="buscador column">
-                            <label for="">Promedio</label>
-                            <input type="text" name="promedio">
+                            <label for="">DNI</label>
+                            <input type="text" name="promedio" id="dni-student">
                         </div>
                     </div>
                     <br>
-                    <table>
+                    <table id = "tabla-alumnos">
                         <tr>
                             <th>Nombre</th>
-                            <th>Código</th>
-                            <th>Promedio</th>
+                            <th>DNI</th>
+                            <th>email</th>
                         </tr>
                         <tr>
-                            <td>Alumno 1</td>
-                            <td>123456</td>
-                            <td>10</td>
-                        </tr>
-                        <tr>
-                            <td>Alumno 2</td>
-                            <td>123456</td>
-                            <td>10</td>
-                        </tr>
-                        <tr>
-                            <td>Alumno 3</td>
-                            <td>123456</td>
-                            <td>10</td>
-                        </tr>
-                        <tr>
-                            <td>Alumno 2</td>
-                            <td>123456</td>
-                            <td>10</td>
-                        </tr>
-                        <tr>
-                            <td>Alumno 3</td>
-                            <td>123456</td>
-                            <td>10</td>
-                        </tr>
-                        <tr>
-                            <td>Alumno 2</td>
-                            <td>123456</td>
-                            <td>10</td>
-                        </tr>
-                        <tr>
-                            <td>Alumno 3</td>
-                            <td>123456</td>
-                            <td>10</td>
-                        </tr>
-                        <tr>
-                            <td>Alumno 2</td>
-                            <td>123456</td>
-                            <td>10</td>
-                        </tr>
-                        <tr>
-                            <td>Alumno 3</td>
-                            <td>123456</td>
-                            <td>10</td>
-                        </tr>
-                        <tr>
-                            <td>Alumno 2</td>
-                            <td>123456</td>
-                            <td>10</td>
-                        </tr>
-                        <tr>
-                            <td>Alumno 3</td>
-                            <td>123456</td>
-                            <td>10</td>
-                        </tr>
-                        <tr>
-                            <td>Alumno 2</td>
-                            <td>123456</td>
-                            <td>10</td>
-                        </tr>
-                        <tr>
-                            <td>Alumno 3</td>
-                            <td>123456</td>
-                            <td>10</td>
-                        </tr>
-                        <tr>
-                            <td>Alumno 2</td>
-                            <td>123456</td>
-                            <td>10</td>
-                        </tr>
-                        <tr>
-                            <td>Alumno 3</td>
-                            <td>123456</td>
-                            <td>10</td>
+                            <td>Empty</td>
+                            <td>Empty</td>
+                            <td>Empty</td>
                         </tr>
                     </table>
                 </div>
@@ -172,5 +102,105 @@
     </section>
 
     <script src="scripts/loadingLink.js"></script>
+    <script>
+        const tabla = document.getElementById('tabla-alumnos');
+
+        const nombre = document.getElementById('nombre-student');
+        const curso = document.getElementById('curso-student');
+        const dni = document.getElementById('dni-student');
+
+
+        let id_teacher = document.cookie.split(" ")[1];
+        document.getElementById("curso-student").innerHTML = "";
+        const url1 = "http://127.0.0.1:5002/teachers/" + id_teacher + "/courses";
+
+        fetch(url1, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": document.cookie
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            if (data.success) {
+                for (let i = 0; i < data.courses.length; i++) {
+                    let option = document.createElement("option");
+                    option.value = data.courses[i].id_course;
+                    option.innerHTML = data.courses[i].course_name;
+                    document.getElementById("curso-student").appendChild(option);
+                }
+            } else {
+                console.log(data.message);
+            }
+        });
+
+
+        function getURL(){
+            url = "http://127.0.0.1:5000/students"
+
+            if (nombre.value != "" || curso.value != "" || dni.value != ""){
+                url += "?";
+                if (nombre.value != ""){
+                    url += `nombre=${nombre.value}&`;
+                }
+                if (curso.value != ""){
+                    url += `curso=${curso.value}&`;
+                }
+                if (dni.value != ""){
+                    url += `dni=${dni.value}&`;
+                }
+
+                url = url.slice(0, -1); // saco el ultimo &
+            }
+
+            return url;
+
+        }
+
+        function cargar(){
+            fetch(getURL(), {
+                "method": "GET",
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization": document.cookie
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success){
+                    tabla.innerHTML = `
+                        <tr>
+                            <th>Nombre</th>
+                            <th>DNI</th>
+                            <th>email</th>
+                        </tr>
+                    `;
+
+                    data.students.forEach(student => {
+                        tabla.innerHTML += `
+                            <tr>
+                                <td>${student.name}</td>
+                                <td>${student.dni}</td>
+                                <td>${student.email}</td>
+                            </tr>
+                        `;
+                    });
+                }
+            })
+            .catch(err => {
+                alert(err);
+            });
+        }
+
+
+        cargar();
+
+        nombre.addEventListener('keyup', cargar);
+        curso.addEventListener('keyup', cargar);
+        dni.addEventListener('keyup', cargar);
+
+    </script>
 </body>
 </html>
