@@ -205,11 +205,10 @@
     <script src="scripts/deleteCookies.js"></script>
     <script>
         const cursoForm = document.getElementById("curso-form");
-
         const tareaForm = document.getElementById("tarea-form");
         const alumnoForm = document.getElementById("alumno-form");
 
-        const showCursoForm = document.getElementById("show-curso-form");
+        const showCursoForm = document.getElementById("show-curso-form"); //btns
         const showTareaForm = document.getElementById("show-homework-form");
         const showAlumnoForm = document.getElementById("show-student-form");
 
@@ -224,7 +223,7 @@
             });
         }
 
-        showCursoForm.addEventListener("click", () => {
+        showCursoForm.addEventListener("click", () => { //none = oculto, flex = visible
             floatingWindow.style.display = "flex";
             cursoForm.style.display = "flex";
             tareaForm.style.display = "none";
@@ -279,7 +278,6 @@
 
         btnCreateCourse.addEventListener("click", (e) => {
             e.preventDefault();
-
 
             const nombre = document.getElementById("nombre").value;
             const data = {

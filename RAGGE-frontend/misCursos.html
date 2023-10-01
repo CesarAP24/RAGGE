@@ -5,9 +5,10 @@
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/content.css">
     <link rel="stylesheet" href="css/loading.css">
+    <link rel="stylesheet" href="css/floatingWindow.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <style>
+    <style> 
         .tarjeta-contenido.row.center-vertical {
             justify-content: space-between;
             padding: 10px;
@@ -28,12 +29,155 @@
             display: flex;
             align-items: center;
             justify-content: center;
-        } 
+        }
+
+        .floating-window-cuourse{
+            width: 30%;
+            min-width: 300px;
+            max-width: 500px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+        }
+        /*nombre del curso del FW course header tiene margin bottom de 10px*/
+        .FW-course-header{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+
+        .cross{
+            width: 20%;
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-end;
+            margin: 0;
+            margin-bottom: 20px;
+        }
+
+        .cross p{
+            box-sizing: border-box;
+            z-index: 100;
+            font-size: 20px;
+            padding: 10px;
+            color: gray;
+            text-decoration: none;
+            cursor: pointer;
+            margin: 0;
+            font-family: Consolas;
+        }
+
+        .cross p:hover{
+            color: #000;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .lista-alumnos-notas-elemento{
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        /*nombre de la tarea 1 tiene un encuadre*/
+        .design{
+            width: 100%;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #1e8fff28;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 10px;
+        }
+
+        .design-top{
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .design p{
+            margin: 0;
+            margin-bottom: 10px;
+        }
+
+        .lista-alumnos-notas{
+            margin-top: 15px;
+        }
+
+        /*btn-desplegar sigue el mismo estilo que otros botones, sin color de fondo*/
+        .btn-desplegar{
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #1e8fff28;
+            border-radius: 5px;
+            cursor: pointer;
+            background: none;
+        }
+
+
+        /*nombre del alumno tiene un encuadre de sombra*/
+        .lista-alumnos-notas{
+            width: 100%;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 10px;
+        }
+
     </style>
 </head>
 
-
 <body>
+    <!--floating windoS-->
+    <div class="floating-window" style="display: none" id="floating-window"> <!--este div va a contener a muchas tarjetas     style="display: none" -->
+        <!--plantilla-->
+        <!--
+        <div class="floating-window-cuourse" id = "id-curso-1"> 
+            <div class="FW-course-header"> 
+                <div class="text"> 
+                    <h3>--Nombre del curso--</h3>
+                    <h3>Tareas del curso</h3>
+                </div>
+                <div class="cross"><p class="cross-a">x</p></div>
+            </div>
+            <div class="FW-course-content"> 
+                <div class="FW-homework"> 
+                    <div class="FW-homework-target">
+                        <div class="design" id="target1">
+                            <div class="design-top">
+                                <p>Nombre de la tarea 1</p>
+                                <button class = "btn btn-desplegar"> v</button>
+                            </div>
+                            <div class="lista-alumnos-notas">
+                                <div class="lista-alumnos-notas-elemento">
+                                    <div class="elemnto-left"> Nombre de alumno 1 </div>
+                                    <div class="elemento-right"> Nota: 10 </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        -->
+    </div>
+
     <div id="pantalla-carga" class="pantalla-carga">
         <div class="spinner"></div>
     </div>
@@ -47,16 +191,12 @@
     </div>
 
     <section class="main">
+
         <div class="left">
             <div class="contenido">
                 <h2>Cursos:</h2>
                 <div class="column" id="cursos-container">
-                    <!-- <div class="tarjeta">
-                        <div class="tarjeta-contenido row center-vertical">
-                            <h4>Nombre del curso</h4>
-                            <button class="btn btn-eliminar" data-id="<id>" >X</button>
-                        </div>
-                    </div> -->
+                    <!-- contenido: cursos -->
                 </div>
             </div>
         </div>
@@ -81,9 +221,9 @@
 
     <script>
         //cargar cursos
-
         const url = "http://127.0.0.1:5002/teachers/" + getCookie("cookie") + "/courses";
         const cursosContainer = document.getElementById("cursos-container");
+        console.log(url);
         
         let options = {
             method: "GET",
@@ -97,8 +237,177 @@
         .then(response => response.json())
         .then(data => {
             console.log(data);
+
+            //mostrar cursos
+            if (data.success){
+                for (let i=0; i<data.courses.length; i++){
+                    let tarjeta = document.createElement("div");
+                    tarjeta.setAttribute("class", "tarjeta");
+
+                    let tarjetaContenido = document.createElement("div");
+                    tarjetaContenido.setAttribute("class", "tarjeta-contenido row center-vertical");
+
+                    let h4 = document.createElement("h4");
+                    h4.innerHTML = data.courses[i].course_name;
+
+                    let button = document.createElement("button");
+                    button.setAttribute("class", "btn");
+                    button.setAttribute("data-id", data.courses[i].id_course);
+                    button.innerHTML = ">";
+
+                    tarjetaContenido.appendChild(h4);
+                    tarjetaContenido.appendChild(button);
+                    tarjeta.appendChild(tarjetaContenido);
+                    cursosContainer.appendChild(tarjeta);
+                }
+            }
+
         });
 
+        //cargar tareas de cada curso
+        const floatingWindowsContainer = document.getElementById("floating-window");
+
+        console.log("holi");
+
+        //vamos a cargar las tareas por cada curso
+        for (let i=0; i<cursosContainer.children.length; i++){
+            //let btn_curso = cursosContainer.children[i].children[0].children[1];
+            //btn_curso.addEventListener("click", function(){
+
+            let FWCourse = document.createElement("div"); //crea una ventana emergente para cada curso
+            FWCourse.setAttribute("class", "floating-window-cuourse");  
+            FWCourse.setAttribute("style", "display: none");      
+
+            let idCurso = cursosContainer.children[i].children[0].children[1].getAttribute("data-id");
+            console.log(idCurso);
+
+            const url1 = "http://127.0.0.1:5001/courses" + idCurso + "/homeworks";
+
+            let options1 = {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + getCookie("cookie")
+                }
+            }
+
+            fetch(url1, options1) //get de las tareas de un curso
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+
+                if(data.success){
+                    //crear header
+                    let FWCourseHeader = document.createElement("div");
+                    FWCourseHeader.setAttribute("class", "FW-course-header");
+
+                    let text = document.createElement("div");
+                    text.setAttribute("class", "text");
+
+                    let h3 = document.createElement("h3");
+                    h3.innerHTML = data.course_name;
+
+                    let h3_2 = document.createElement("h3");
+                    h3_2.innerHTML = "Tareas del curso";
+
+                    text.appendChild(h3);
+                    text.appendChild(h3_2);
+
+                    let cross = document.createElement("div");
+                    cross.setAttribute("class", "cross");
+
+                    let p = document.createElement("p");
+                    p.setAttribute("class", "cross-a");
+                    p.innerHTML = "x";
+
+                    cross.appendChild(p);
+
+                    FWCourseHeader.appendChild(text);
+                    FWCourseHeader.appendChild(cross);
+
+                    //crear contenido
+                    let FWCourseContent = document.createElement("div");
+                    FWCourseContent.setAttribute("class", "FW-course-content");
+
+                    let FWHomework = document.createElement("div");
+                    FWHomework.setAttribute("class", "FW-homework");
+
+                    let FWHomeworkTarget = document.createElement("div");
+                    FWHomeworkTarget.setAttribute("class", "FW-homework-target");
+
+                    for (let j=0; j<data.homeworks.length; j++){
+                        let design = document.createElement("div");
+                        design.setAttribute("class", "design");
+                        design.setAttribute("id", "target" + j); //mmm
+
+                        let designTop = document.createElement("div");
+                        designTop.setAttribute("class", "design-top");
+
+                        let p = document.createElement("p");
+                        p.innerHTML = data.homeworks[j].homework_name;
+
+                        let button = document.createElement("button");
+                        button.setAttribute("class", "btn btn-desplegar");
+                        button.innerHTML = "v";
+
+                        designTop.appendChild(p);
+                        designTop.appendChild(button);
+
+                        let listaAlumnosNotas = document.createElement("div");
+                        listaAlumnosNotas.setAttribute("class", "lista-alumnos-notas");
+
+                        const url2 = "http://127.0.0.1:5001/courses/" + idCurso + "/homeworks/" + data.homeworks[j].id_homework + "/scores";
+
+                        let options1 = {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Authorization": "Bearer " + getCookie("cookie")
+                            }
+                        }
+
+                        //hacer el fetch
+                        fetch(url2, options1)
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data2);
+
+                            if (data2.success){
+                                for (let k=0; k<data2.homeworks[j].students.length; k++){
+                                    let listaAlumnosNotasElemento = document.createElement("div");
+                                    listaAlumnosNotasElemento.setAttribute("class", "lista-alumnos-notas-elemento");
+
+                                    let elementoLeft = document.createElement("div");
+                                    elementoLeft.setAttribute("class", "elemento-left");
+                                    elementoLeft.innerHTML = data2.homeworks[j].students[k].student_name;
+
+                                    let elementoRight = document.createElement("div");
+                                    elementoRight.setAttribute("class", "elemento-right");
+                                    elementoRight.innerHTML = "Nota: " + data2.homeworks[j].students[k].score;
+
+                                    listaAlumnosNotasElemento.appendChild(elementoLeft);
+                                    listaAlumnosNotasElemento.appendChild(elementoRight);
+                                    listaAlumnosNotas.appendChild(listaAlumnosNotasElemento);
+                                }
+                            }
+                        });
+
+                        design.appendChild(designTop);
+                        design.appendChild(listaAlumnosNotas);
+                        FWHomeworkTarget.appendChild(design);
+                    }
+                    FWCourseContent.appendChild(FWHomeworkTarget);
+                    FWCourse.appendChild(FWCourseHeader);
+                    FWCourse.appendChild(FWCourseContent);
+                }
+            });
+        //}
+            floatingWindowsContainer.appendChild(FWCourse);
+        }
+
+        //el id course es el id del boton
+
+        
 
     </script>
 </body>
