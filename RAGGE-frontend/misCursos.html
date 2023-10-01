@@ -50,22 +50,13 @@
         <div class="left">
             <div class="contenido">
                 <h2>Cursos:</h2>
-                <div class="column">
-                    <div class="tarjeta">
+                <div class="column" id="cursos-container">
+                    <!-- <div class="tarjeta">
                         <div class="tarjeta-contenido row center-vertical">
-                            <h4>Nombre del Curso</h4> <button class="btn">></button>
+                            <h4>Nombre del curso</h4>
+                            <button class="btn btn-eliminar" data-id="<id>" >X</button>
                         </div>
-                    </div>
-                    <div class="tarjeta">
-                        <div class="tarjeta-contenido row center-vertical">
-                            <h4>Nombre del Curso</h4> <button class="btn">></button>
-                        </div>
-                    </div>
-                    <div class="tarjeta">
-                        <div class="tarjeta-contenido row center-vertical">
-                            <h4>Nombre del Curso</h4> <button class="btn">></button>
-                        </div>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </div>
@@ -87,31 +78,28 @@
     <script src="scripts/deleteCookies.js"></script>
 
     <script src="scripts/loadingLink.js"></script>
+
     <script>
         //cargar cursos
-        document.getElementById("curso-student").appendChild(option);
-                
-        fetch(url1, {
+
+        const url = "http://127.0.0.1:5002/teachers/" + getCookie("cookie") + "/courses";
+        const cursosContainer = document.getElementById("cursos-container");
+        
+        let options = {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + getCookie("cookie")
             }
-        })
+        }
+
+        fetch(url, options)
         .then(response => response.json())
         .then(data => {
             console.log(data);
-            if (data.success) {
-                for (let i = 0; i < data.courses.length; i++) {
-                    let option = document.createElement("option");
-                    option.value = data.courses[i].id_course;
-                    option.innerHTML = data.courses[i].course_name;
-                    document.getElementById("curso-student").appendChild(option);
-                }
-            } else {
-                console.log(data);
-            }
         });
+
+
     </script>
 </body>
 </html>
